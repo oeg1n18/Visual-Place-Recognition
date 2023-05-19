@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 import torch
 from src.data.utils import DataModule
-from src.python.vpr.resnet.vpr import VPR
+from src.vpr_techniques.python.resnet import VPR
 
 
 class TestResnetVPR(unittest.TestCase):
