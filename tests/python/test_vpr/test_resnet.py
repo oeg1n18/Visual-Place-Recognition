@@ -1,8 +1,8 @@
 import unittest
 import numpy as np
 import torch
-from data.utils import DataModule
-from python.vpr.resnet.vpr import VPR
+from src.data.utils import DataModule
+from src.python.vpr.resnet.vpr import VPR
 
 
 class TestResnetVPR(unittest.TestCase):
@@ -13,10 +13,10 @@ class TestResnetVPR(unittest.TestCase):
         self.vpr = VPR(device=device, batch_size=32)
 
     def test_map(self):
-        m_desc = self.vpr.compute_map_features(self.dm.M[:10])
+        m_desc = self.vpr.compute_map_desc(self.dm.M[:10])
 
     def test_map2(self):
-        m_desc = self.vpr.compute_map_features(self.dm.M[:10])
+        m_desc = self.vpr.compute_map_desc(self.dm.M[:10])
         assert 10 == m_desc.shape[0]
         assert m_desc.dtype == np.float32
 
@@ -30,7 +30,7 @@ class TestResnetVPR(unittest.TestCase):
         assert q_desc.dtype == np.float32
 
     def test_sim_matrix(self):
-        m_desc = self.vpr.compute_map_features(self.dm.M[:20])
+        m_desc = self.vpr.compute_map_desc(self.dm.M[:20])
         S = self.vpr.similarity_matrix(self.dm.Q[:10])
         assert S.shape[0] == 10
         assert S.shape[1] == 20

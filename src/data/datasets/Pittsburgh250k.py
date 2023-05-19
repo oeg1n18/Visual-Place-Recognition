@@ -1,10 +1,8 @@
-import os
-import glob
-import numpy as np
+
 
 def get_query_paths(session_type='ms', rootdir='/home/ollie/Documents/Github/Visual-Place-Recognition'):
     if session_type=='ms':
-        path = rootdir + '/data/raw_data/GardensPointWalking'
+        path = rootdir + '/src/data/raw_data/GardensPointWalking'
         query_paths = glob.glob(path + "/day_left/*")
         return query_paths
     else:
@@ -14,7 +12,7 @@ def get_query_paths(session_type='ms', rootdir='/home/ollie/Documents/Github/Vis
 
 def get_map_paths(session_type='ms', rootdir='/home/ollie/Documents/Github/Visual-Place-Recognition'):
     if session_type=='ms':
-        path = rootdir + '/data/raw_data/GardensPointWalking'
+        path = rootdir + '/src/data/raw_data/GardensPointWalking'
         test_paths = glob.glob(path + "/night_right/*")
         test_paths += glob.glob(path + "/day_right/*")
         return test_paths
@@ -29,7 +27,7 @@ def get_gtmatrix(session_type='ms', gt_type='hard', rootdir='/home/ollie/Documen
         map_paths = get_map_paths(session_type=session_type, rootdir=rootdir)
         gtmatrix = np.zeros((len(map_paths), len(query_paths)), dtype=np.uint8)
 
-        path = rootdir + '/data/raw_data/GardensPointWalking'
+        path = rootdir + '/src/data/raw_data/GardensPointWalking'
         for i, m_path in enumerate(map_paths):
             for j, q_path in enumerate(query_paths):
                 if 'night_right' in m_path:

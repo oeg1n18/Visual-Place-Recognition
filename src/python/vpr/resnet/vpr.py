@@ -1,12 +1,10 @@
 import torch
-import torchvision
 from torchvision.models import resnet50, ResNet50_Weights
 import torch.nn as nn
 import numpy as np
 from PIL import Image
-import torchvision
 from torchvision import transforms
-from data.utils import VprDataset
+from src.data.utils import VprDataset
 from torch.utils.data import DataLoader
 
 
@@ -15,6 +13,8 @@ class ResNet:
         self.device = device
         self.resnet = self.get_model()
         self.resnet.to(self.device)
+
+        self.method = 'resnet'
 
         self.preprocess = transforms.Compose([
             transforms.Resize(256),

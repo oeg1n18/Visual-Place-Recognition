@@ -2,6 +2,7 @@ import numpy as np
 import sklearn.metrics as m
 import matplotlib.pyplot as plt
 import time
+import pandas as pd
 
 
 class Evaluate:
@@ -14,17 +15,33 @@ class Evaluate:
         self.S = vpr.similarity_matrix(dm.Q)
 
     def profile(self, threshold=0.7, N=10, p=1., k=1000):
-        print("Precision: ", self.precision(threshold=threshold))
-        print("Recall: ", self.recall(threshold=threshold))
-        print("f1: ", self.f1())
-        print("AP: ", self.average_precision())
-        print("recall@" + str(p), "p: ", self.recall_at_p(p=p))
-        print("recall@" + str(k), "k: ", self.recall_at_k(k=k))
-        t, v = self.encoding_time(N)
-        print("Encoding Time: avg=", f'{t:.4}', "s var=", f'{v:.4}', "device=", str(self.vpr.device))
-        t, v = self.retrieval_time(N)
-        print("Retrieval Time: avg=", f'{t:.4}', "s var=", f'{v:.4}', "device=", str(self.vpr.device))
-        self.descriptor_size()
+        prec = self.precision(threshold=threshold)
+        recall = self.recall(threshold=threshold)
+        f1 = self.f1()
+        ap = self.average_precision()
+        recall_at_p = self.recall_at_p(p=p)
+        recall_at_k = self.recall_at_k(k=k)
+        te, ve = self.encoding_time(N)
+        tr, vr = self.retrieval_time(N)
+
+        data = {'precision':prec,
+                'recall':recall,
+                'f1':f1,
+                'average_precision':ap,
+                'recall@' + str(p) + 'p' :recall_at_p,
+                'recall@' + str(k) + 'k' :recall_at_k,
+                'encoding_t':te,
+                'encoding_t_var': ve,
+                'retrieval_t': tr,
+                'retrieval_t_var': vr}
+
+        try:
+            df = pd.read_csv('../results/profiles/' + str(self.dm.dataset) + '.csv', sep=',')
+            df = df.concat((pd.DataFrame(data, index=[self.vpr.method]), df))
+        except:
+            df = pd.DataFrame(data, index=[self.vpr.method])
+        df.to_csv('../results/profiles/' + str(self.dm.dataset) + '.csv', sep=',')
+        print(df)
 
     def precision(self, threshold=0.7):
         y_true = self.GT.flatten()

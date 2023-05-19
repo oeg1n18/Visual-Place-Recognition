@@ -1,9 +1,8 @@
 
 import unittest
-import cv2
 import numpy as np
 
-import data.utils as dataset
+import src.data.utils as dataset
 
 class TestDataModule(unittest.TestCase):
     def test_dm_setup(self):

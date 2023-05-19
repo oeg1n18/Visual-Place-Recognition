@@ -1,6 +1,5 @@
-import data.datasets.Nordlands as Nordlands
-import data.datasets.GardensPointWalking as GardensPointWalking
-import torch
+import src.data.datasets.Nordlands as Nordlands
+import src.data.datasets.GardensPointWalking as GardensPointWalking
 from torch.utils.data import Dataset
 import PIL.Image as Image
 
@@ -13,6 +12,7 @@ class DataModule:
 
         self.session_type = session_type
         self.gt_type = gt_type
+        self.dataset = dataset
 
         self.Q = self.get_query_paths(dataset)
         self.M = self.get_map_paths(dataset)

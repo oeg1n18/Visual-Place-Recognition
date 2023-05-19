@@ -1,7 +1,7 @@
 import torch
-import data.utils as dataset
-import python.vpr.resnet.vpr as resnet_vpr
-from python.evaluate.vpr_eval import Evaluate
+import src.data.utils as dataset
+import src.python.vpr.resnet.vpr as resnet_vpr
+from src.python.evaluate.vpr_eval import Evaluate
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
