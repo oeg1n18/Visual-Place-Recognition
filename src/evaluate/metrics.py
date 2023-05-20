@@ -4,17 +4,28 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import src.evaluate.matching as matching_methods
 import sklearn
-
+import wandb
 
 class Metrics:
-    def __init__(self, Fq, Fm, GT, GTsoft=None, save_results=True, save_path=None):
+    def __init__(self, method, Fq, Fm, GT, GTsoft=None, save_results=True, save_path=None):
+        wandb.login()
+        wandb.init(
+            project="VPR-Metrics",
+
+            config = {
+                'method':method,
+                'GT_type': True if GTsoft else False,
+                'session_type': 'single-session' if Fq.all() == Fm.all() else 'multi-session'
+            }
+        )
+
         self.Fq = Fq
         self.Fm = Fm
         self.S = np.matmul(Fq, Fm.T).T
         self.GT = GT
         self.GTsoft = GTsoft
 
-    def profile(self, matching='multi', threshold_type='single'):
+    def log_metrics(self, matching='multi', threshold_type='single'):
         prec = self.precision(matching=threshold_type)
         recall = self.recall(matching=threshold_type)
         recallAt1 = self.recallAtK(K=1)
@@ -24,17 +35,21 @@ class Metrics:
         auprc = self.AU_PRC(matching=matching)
         P, R = self.createPR(matching=matching)
 
-
-        record = {"precision":prec,
+        metrics = {"precision":prec,
                   "recall":recall,
                   "recall@1":recallAt1,
                   "recall@5":recallAt5,
                   "recall@10":recallAt10,
                   "recall@100precision":recallAt100precision,
-                  "auprc":auprc,
-                  "PR_precision":P,
-                  "PR_recall":R}
-        return record
+                  "auprc":auprc}
+
+        print(metrics)
+
+        pr_curve = [[r, p] for (p, r) in zip(P, R)]
+        table = wandb.Table(data=pr_curve, columns=["Recall", "Precision"])
+        wandb.log({"Precision Recall Curve": wandb.plot.line(table, "Recall", "precision", title="Precision Recall "
+                                                                                                 "Curve")})
+        wandb.log(metrics)
 
 
     def precision(self, matching='single'):
