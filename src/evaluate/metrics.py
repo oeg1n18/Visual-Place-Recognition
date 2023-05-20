@@ -114,6 +114,15 @@ class Metrics:
             # count the number of ground-truth positives (GTP)
             GTP = np.count_nonzero(GT)  # ground truth positives
 
+        cm = wandb.plot.confusion_matrix(
+            y_true=GT,
+            preds=S,
+            class_names=["No match", "Place Match"])
+
+        wandb.log({"conf_mat": cm})
+        wandb.log({"roc": wandb.plot.roc_curve(GT, S)})
+        wandb.log({"pr": wandb.plot.pr_curve(GT, S)})
+
         # init precision and recall vectors
         R = [0, ]
         P = [1, ]
