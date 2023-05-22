@@ -7,14 +7,14 @@ import sklearn
 import wandb
 
 class Metrics:
-    def __init__(self, method, Fq, Fm, GT, GTsoft=None, save_results=True, save_path=None):
+    def __init__(self, method, Fq, Fm, GT, GTsoft=None):
         wandb.login()
         wandb.init(
             project="VPR-Metrics",
-
+            name = method,
             config = {
                 'method':method,
-                'GT_type': True if GTsoft else False,
+                'GT_type': 'soft' if isinstance(GTsoft, type(np.ones(1))) else 'hard',
                 'session_type': 'single-session' if Fq.all() == Fm.all() else 'multi-session'
             }
         )
@@ -45,10 +45,6 @@ class Metrics:
 
         print(metrics)
 
-        pr_curve = [[r, p] for (p, r) in zip(P, R)]
-        table = wandb.Table(data=pr_curve, columns=["Recall", "Precision"])
-        wandb.log({"Precision Recall Curve": wandb.plot.line(table, "Recall", "precision", title="Precision Recall "
-                                                                                                 "Curve")})
         wandb.log(metrics)
 
 
@@ -59,7 +55,23 @@ class Metrics:
             M = matching_methods.thresholding(self.S, 'auto')
         elif type(matching) == float:
             M = matching_methods.thresholding(self.S, matching)
-        return sklearn.metrics.precision_score(self.GT.flatten(), M.flatten())
+        return sklearn.metrics.precision_score(self.GTsoft.flatten(), M.flatten())
+
+
+    def confusion_matrix(self, matching='single'):
+        if matching == 'single':
+            M = matching_methods.best_match_per_query(self.S)
+        elif matching == 'auto':
+            M = matching_methods.thresholding(self.S, 'auto')
+        elif type(matching) == float:
+            M = matching_methods.thresholding(self.S, matching)
+
+        y_truth = self.GTsoft if isinstance(self.GTsoft, type(np.ones(1))) else self.GT
+        cm = wandb.plot.confusion_matrix(
+            y_true=y_truth.flatten(),
+            probs=M.flatten(),
+            class_names=["No match", "Place Match"])
+        wandb.log({"conf_mat": cm})
 
     def recall(self, matching='single'):
         if matching == 'single':
@@ -113,15 +125,9 @@ class Metrics:
         elif matching == 'multi':
             # count the number of ground-truth positives (GTP)
             GTP = np.count_nonzero(GT)  # ground truth positives
-
-        cm = wandb.plot.confusion_matrix(
-            y_true=GT,
-            preds=S,
-            class_names=["No match", "Place Match"])
-
-        wandb.log({"conf_mat": cm})
-        wandb.log({"roc": wandb.plot.roc_curve(GT, S)})
-        wandb.log({"pr": wandb.plot.pr_curve(GT, S)})
+        print(GT.flatten().astype(int).shape, S.flatten().shape)
+        wandb.log({"roc": wandb.plot.roc_curve(GT.flatten().astype(int), S.flatten())})
+        wandb.log({"pr": wandb.plot.pr_curve(GT.flatten().astype(int), S.flatten())})
 
         # init precision and recall vectors
         R = [0, ]

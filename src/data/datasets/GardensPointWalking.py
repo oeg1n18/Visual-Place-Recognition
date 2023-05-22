@@ -4,7 +4,7 @@ import numpy as np
 from scipy.signal import convolve2d
 
 
-def get_query_paths(session_type='ms', rootdir='/home/ollie/Documents/Github/Visual-Place-Recognition'):
+def get_query_paths(session_type='ms', rootdir='/Users/olivergrainge/Documents/github/Visual-Place-Recognition'):
     if session_type=='ms':
         path = rootdir + '/src/data/raw_data/GardensPointWalking'
         query_paths = sorted(glob.glob(path + "/night_right/*"))
@@ -14,7 +14,7 @@ def get_query_paths(session_type='ms', rootdir='/home/ollie/Documents/Github/Vis
 
 
 
-def get_map_paths(session_type='ms', rootdir='/home/ollie/Documents/Github/Visual-Place-Recognition'):
+def get_map_paths(session_type='ms', rootdir='/Users/olivergrainge/Documents/github/Visual-Place-Recognition'):
     if session_type=='ms':
         path = rootdir + '/src/data/raw_data/GardensPointWalking'
         test_paths = sorted(glob.glob(path + "/day_right/*"))
@@ -22,9 +22,9 @@ def get_map_paths(session_type='ms', rootdir='/home/ollie/Documents/Github/Visua
     else:
         raise Exception("Only session_type=ms available for this GardensPoint Dataset")
 
+#
 
-
-def get_gtmatrix(session_type='ms', gt_type='hard', rootdir='/home/ollie/Documents/Github/Visual-Place-Recognition'):
+def get_gtmatrix(session_type='ms', gt_type='hard', rootdir='/Users/olivergrainge/Documents/github/Visual-Place-Recognition'):
     if session_type=='ms':
         query_paths = get_query_paths(session_type=session_type, rootdir=rootdir)
         map_paths = get_map_paths(session_type=session_type, rootdir=rootdir)
