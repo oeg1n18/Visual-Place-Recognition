@@ -9,10 +9,7 @@ import sklearn
 import wandb
 
 class Metrics:
-    def __init__(self, method_name, dataset_name, Fq, Fm, GT, GTsoft=None):
-        self.method_name = method_name
-        self.dataset_name = dataset_name
-
+    def __init__(self, method_name, dataset_name, Fq, Fm, GT, GTsoft=None, matching_method=None):
         wandb.login()
         self.run = wandb.init(
             project = "VPR-Metrics",
@@ -27,9 +24,14 @@ class Metrics:
             }
         )
 
+        self.method_name = method_name
+        self.dataset_name = dataset_name
         self.Fq = Fq
         self.Fm = Fm
-        self.S = cosine_similarity(Fq, Fm)
+        if matching_method:
+            self.S = matching_method(Fq, Fm)
+        else:
+            self.S = cosine_similarity(Fq, Fm)
         self.GT = GT
         self.GTsoft = GTsoft
 
@@ -50,7 +52,7 @@ class Metrics:
         metrics = {"method": self.method_name,
                   "dataset": self.dataset_name,
                   "gt_type": 'GTsoft' if isinstance(self.GTsoft, type(np.ones(1))) else 'GThard',
-                  "session_type": 'single-session' if Fq.all() == Fm.all() else 'multi-session',
+                  "session_type": 'single-session' if self.Fq.all() == self.Fm.all() else 'multi-session',
                   "precision": [prec],
                   "recall": [recall],
                   "recall@1": [recallAt1],
@@ -58,7 +60,7 @@ class Metrics:
                   "recall@10": [recallAt10],
                   "recall@100precision": [recallAt100precision],
                   "auprc": [auprc]}
-
+        print(metrics)
         metrics_table = wandb.Table(dataframe=pd.DataFrame.from_dict(metrics))
         self.run.log({"metrics":metrics_table})
         wandb.finish()

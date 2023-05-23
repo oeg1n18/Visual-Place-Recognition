@@ -1,6 +1,7 @@
 import argparse
 from src.data.datasets import GardensPointWalking
 from src.vpr_techniques.python import densevlad
+from src.vpr_techniques.python import patchnetvlad
 from src.vpr_techniques.python import netvlad
 from evaluate.metrics import Metrics
 import os
@@ -25,6 +26,7 @@ GT = GardensPointWalking.get_gtmatrix(rootdir=PROJECT_ROOT, gt_type='hard')
 GTsoft = GardensPointWalking.get_gtmatrix(rootdir=PROJECT_ROOT, gt_type='soft')
 
 
+
 Fq = densevlad.compute_query_desc(Q)
 Fm = densevlad.compute_map_features(M)
 
@@ -37,4 +39,9 @@ Fm = netvlad.compute_map_features(M)
 eval = Metrics(netvlad.NAME, GardensPointWalking.NAME, Fq, Fm, GT, GTsoft=GTsoft)
 eval.log_metrics()
 
+Fq = patchnetvlad.compute_query_desc(Q)
+Fm = patchnetvlad.compute_map_features(M)
+
+eval = Metrics(patchnetvlad.NAME, GardensPointWalking.NAME, Fq, Fm, GT, GTsoft=GTsoft, matching_method=patchnetvlad.matching_function)
+eval.log_metrics()
 

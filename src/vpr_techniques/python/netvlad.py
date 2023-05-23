@@ -1,7 +1,7 @@
 
 from patchnetvlad.tools import PATCHNETVLAD_ROOT_DIR
 import configparser
-from src.vpr_techniques.python.techniques.patchnetvlad.feature_extractor_patchnetvlad import PatchNetVLADFeatureExtractor
+from src.vpr_techniques.python.patchnetvlad import PatchNetVLADFeatureExtractor
 import os
 import PIL.Image as Image
 import numpy as np
