@@ -15,8 +15,11 @@ DESCRIPTOR_SIZE = 128
 BASE_MODEL = 'resnet50'
 RECLUSTER = False
 CODEBOOK_SIZE = 100
+NAME = 'DenseVLAD'
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+PROJECT_ROOT = '/home/ollie/Documents/Github/Visual-Place-Recognition/src/'
 
 def get_base_model(base_model='resnet50'):
     if base_model == 'resnet50':
@@ -62,7 +65,7 @@ def compute_vlad(desc, centers, codebook_size=100):
 
 
 def recluster(max_images=200):
-    db_imgs = GardensPointWalking.get_map_paths()
+    db_imgs = GardensPointWalking.get_map_paths(rootdir=PROJECT_ROOT)
     if len(db_imgs) > max_images:
         db_imgs = db_imgs[:max_images]
     if len(db_imgs) > BATCH_SIZE:
@@ -73,7 +76,7 @@ def recluster(max_images=200):
         feature_maps = feature_extractor(imgs)
     desc = get_descriptors(feature_maps, desc_size=DESCRIPTOR_SIZE)
     clusters = cluster_descriptors(desc, codebook_size=100)
-    np.save(os.getcwd() + "/vpr_techniques/python/techniques/densevlad/clusters.npy", clusters)
+    np.save(PROJECT_ROOT + "vpr_techniques/python/techniques/densevlad/clusters.npy", clusters)
 
 
 ## ===================================== VPR Functions ==============================================================
@@ -83,13 +86,15 @@ feature_extractor, preprocess = get_base_model(base_model=BASE_MODEL)
 if RECLUSTER:
     recluster(max_images=200)
 
-centers = np.load(os.getcwd() + '/vpr_techniques/python/techniques/densevlad/clusters.npy')
+centers = np.load(PROJECT_ROOT + "vpr_techniques/python/techniques/densevlad/clusters.npy")
 
 def compute_query_desc(Q):
     if len(Q) > BATCH_SIZE:
         dl = DataLoader(VprDataset(Q, transform=preprocess), batch_size=BATCH_SIZE)
         vlads = []
-        for batch in tqdm(dl):
+        pbar = tqdm(dl)
+        for batch in pbar:
+            pbar.set_description("Computing Query Descriptors")
             feature_maps = feature_extractor(batch)
             desc = get_descriptors(feature_maps, DESCRIPTOR_SIZE)
             vlad = np.vstack([compute_vlad(d, centers, codebook_size=CODEBOOK_SIZE) for d in desc])
@@ -111,7 +116,9 @@ def compute_map_features(M):
     if len(M) > BATCH_SIZE:
         dl = DataLoader(VprDataset(M, transform=preprocess), batch_size=BATCH_SIZE)
         vlads = []
-        for batch in tqdm(dl):
+        pbar = tqdm(dl)
+        for batch in pbar:
+            pbar.set_description("Computing Map Descriptors")
             feature_maps = feature_extractor(batch)
             desc = get_descriptors(feature_maps, DESCRIPTOR_SIZE)
             vlad = np.vstack([compute_vlad(d, centers, codebook_size=CODEBOOK_SIZE) for d in desc])

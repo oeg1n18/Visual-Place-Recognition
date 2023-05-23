@@ -2,26 +2,34 @@ import numpy as np
 import sklearn.metrics as m
 import matplotlib.pyplot as plt
 import pandas as pd
+from sklearn.metrics.pairwise import cosine_similarity
+
 import src.evaluate.matching as matching_methods
 import sklearn
 import wandb
 
 class Metrics:
-    def __init__(self, method, Fq, Fm, GT, GTsoft=None):
+    def __init__(self, method_name, dataset_name, Fq, Fm, GT, GTsoft=None):
+        self.method_name = method_name
+        self.dataset_name = dataset_name
+
         wandb.login()
-        wandb.init(
-            project="VPR-Metrics",
-            name = method,
+        self.run = wandb.init(
+            project = "VPR-Metrics",
+            name = method_name,
+            tags = [method_name, dataset_name, 'GTsoft' if isinstance(GTsoft, type(np.ones(1))) else 'GThard'],
+
             config = {
-                'method':method,
-                'GT_type': 'soft' if isinstance(GTsoft, type(np.ones(1))) else 'hard',
+                'method': method_name,
+                'dataset': dataset_name,
+                'GT_type': 'GTsoft' if isinstance(GTsoft, type(np.ones(1))) else 'GThard',
                 'session_type': 'single-session' if Fq.all() == Fm.all() else 'multi-session'
             }
         )
 
         self.Fq = Fq
         self.Fm = Fm
-        self.S = np.matmul(Fq, Fm.T).T
+        self.S = cosine_similarity(Fq, Fm)
         self.GT = GT
         self.GTsoft = GTsoft
 
@@ -33,20 +41,27 @@ class Metrics:
         recallAt10 = self.recallAtK(K=10)
         recallAt100precision = self.recallAt100precision(matching='multi')
         auprc = self.AU_PRC(matching=matching)
-        P, R = self.createPR(matching=matching)
 
-        metrics = {"precision":prec,
-                  "recall":recall,
-                  "recall@1":recallAt1,
-                  "recall@5":recallAt5,
-                  "recall@10":recallAt10,
-                  "recall@100precision":recallAt100precision,
-                  "auprc":auprc}
+        # plot curves
+        self.ROCcurve(matching=matching)
+        self.PRcurve(matching=matching)
+        self.confusion_matrix(matching='single')
 
-        print(metrics)
+        metrics = {"method": self.method_name,
+                  "dataset": self.dataset_name,
+                  "gt_type": 'GTsoft' if isinstance(self.GTsoft, type(np.ones(1))) else 'GThard',
+                  "session_type": 'single-session' if Fq.all() == Fm.all() else 'multi-session',
+                  "precision": [prec],
+                  "recall": [recall],
+                  "recall@1": [recallAt1],
+                  "recall@5": [recallAt5],
+                  "recall@10": [recallAt10],
+                  "recall@100precision": [recallAt100precision],
+                  "auprc": [auprc]}
 
-        wandb.log(metrics)
-
+        metrics_table = wandb.Table(dataframe=pd.DataFrame.from_dict(metrics))
+        self.run.log({"metrics":metrics_table})
+        wandb.finish()
 
     def precision(self, matching='single'):
         if matching == 'single':
@@ -55,7 +70,7 @@ class Metrics:
             M = matching_methods.thresholding(self.S, 'auto')
         elif type(matching) == float:
             M = matching_methods.thresholding(self.S, matching)
-        return sklearn.metrics.precision_score(self.GTsoft.flatten(), M.flatten())
+        return sklearn.metrics.precision_score(self.GTsoft.flatten().astype(int), M.flatten().astype(int))
 
 
     def confusion_matrix(self, matching='single'):
@@ -66,12 +81,10 @@ class Metrics:
         elif type(matching) == float:
             M = matching_methods.thresholding(self.S, matching)
 
-        y_truth = self.GTsoft if isinstance(self.GTsoft, type(np.ones(1))) else self.GT
-        cm = wandb.plot.confusion_matrix(
-            y_true=y_truth.flatten(),
-            probs=M.flatten(),
-            class_names=["No match", "Place Match"])
-        wandb.log({"conf_mat": cm})
+        y_truth = self.GTsoft if isinstance(self.GTsoft, type(np.ones(1))) else self.GTF
+        wandb.sklearn.plot_confusion_matrix(y_truth.flatten().astype(int),
+                                            M.flatten().astype(int),
+                                            labels=["Negative", "Positive"])
 
     def recall(self, matching='single'):
         if matching == 'single':
@@ -80,7 +93,7 @@ class Metrics:
             M = matching_methods.thresholding(self.S, 'auto')
         elif type(matching) == float:
             M = matching_methods.thresholding(self.S, matching)
-        return sklearn.metrics.recall_score(self.GT.flatten(), M.flatten())
+        return sklearn.metrics.recall_score(self.GT.flatten().astype(int), M.flatten().astype(int))
 
     def createPR(self, matching='multi', n_thresh=100):
         """
@@ -124,11 +137,7 @@ class Metrics:
 
         elif matching == 'multi':
             # count the number of ground-truth positives (GTP)
-            GTP = np.count_nonzero(GT)  # ground truth positives
-        print(GT.flatten().astype(int).shape, S.flatten().shape)
-        wandb.log({"roc": wandb.plot.roc_curve(GT.flatten().astype(int), S.flatten())})
-        wandb.log({"pr": wandb.plot.pr_curve(GT.flatten().astype(int), S.flatten())})
-
+            GTP = np.count_nonzero(GT)  # ground truth positive
         # init precision and recall vectors
         R = [0, ]
         P = [1, ]
@@ -147,6 +156,71 @@ class Metrics:
             P.append(TP / (TP + FP))  # precision
             R.append(TP / GTP)  # recall
         return P, R
+
+    def ROCcurve(self, matching='multi', n_thresh=100):
+        assert (self.S.shape == self.GT.shape), "S_in, GThard and GTsoft must have the same shape"
+        assert (self.S.ndim == 2), "S_in, GThard and GTsoft must be two-dimensional"
+        assert (n_thresh > 1), "n_thresh must be >1"
+
+        # ensure logical datatype in GT and GTsoft
+        GT = self.GT.astype('bool')
+
+        # copy S and set elements that are only true in GTsoft to min(S) to ignore them during evaluation
+        S = self.S.copy()
+        if self.GTsoft is not None:
+            S[self.GTsoft & ~self.GT] = S.min()
+
+        # single-best-match or multi-match VPR
+        if matching == 'single':
+            # count the number of ground-truth positives (GTP)
+            GTP = np.count_nonzero(GT.any(0))
+
+            # GT-values for best match per query (i.e., per column)
+            GT = GT[np.argmax(S, axis=0), np.arange(GT.shape[1])]
+
+            # similarities for best match per query (i.e., per column)
+            S = np.max(S, axis=0)
+
+        elif matching == 'multi':
+            # count the number of ground-truth positives (GTP)
+            GTP = np.count_nonzero(GT)  # ground truth positive
+
+        scores = np.concatenate((1 - S.flatten()[:, None], S.flatten()[:, None]), axis=1)
+        wandb.log({"roc": wandb.plot.roc_curve(GT.flatten().astype(int),
+                                               scores, labels=["No_Match", "Place_Match"],
+                                               classes_to_plot=[1])})
+
+    def PRcurve(self, matching='multi', n_thresh=100):
+        assert (self.S.shape == self.GT.shape), "S_in, GThard and GTsoft must have the same shape"
+        assert (self.S.ndim == 2), "S_in, GThard and GTsoft must be two-dimensional"
+        assert (n_thresh > 1), "n_thresh must be >1"
+
+        # ensure logical datatype in GT and GTsoft
+        GT = self.GT.astype('bool')
+
+        # copy S and set elements that are only true in GTsoft to min(S) to ignore them during evaluation
+        S = self.S.copy()
+        if self.GTsoft is not None:
+            S[self.GTsoft & ~self.GT] = S.min()
+
+        # single-best-match or multi-match VPR
+        if matching == 'single':
+            # count the number of ground-truth positives (GTP)
+            GTP = np.count_nonzero(GT.any(0))
+
+            # GT-values for best match per query (i.e., per column)
+            GT = GT[np.argmax(S, axis=0), np.arange(GT.shape[1])]
+
+            # similarities for best match per query (i.e., per column)
+            S = np.max(S, axis=0)
+
+        elif matching == 'multi':
+            # count the number of ground-truth positives (GTP)
+            GTP = np.count_nonzero(GT)  # ground truth positive
+
+        scores = np.concatenate((1 - S.flatten()[:, None], S.flatten()[:, None]), axis=1)
+        wandb.log({"pr": wandb.plot.pr_curve(GT.flatten().astype(int), scores, labels=["No_Match", "Place_Match"],
+                                               classes_to_plot=[1])})
 
     def recallAtK(self, K=1):
         """

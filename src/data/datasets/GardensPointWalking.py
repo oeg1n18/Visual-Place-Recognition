@@ -3,10 +3,10 @@ import glob
 import numpy as np
 from scipy.signal import convolve2d
 
-
+NAME = 'GardensPointWalking'
 def get_query_paths(session_type='ms', rootdir='/Users/olivergrainge/Documents/github/Visual-Place-Recognition'):
     if session_type=='ms':
-        path = rootdir + '/src/data/raw_data/GardensPointWalking'
+        path = rootdir + '/data/raw_data/GardensPointWalking'
         query_paths = sorted(glob.glob(path + "/night_right/*"))
         return query_paths
     else:
@@ -16,7 +16,7 @@ def get_query_paths(session_type='ms', rootdir='/Users/olivergrainge/Documents/g
 
 def get_map_paths(session_type='ms', rootdir='/Users/olivergrainge/Documents/github/Visual-Place-Recognition'):
     if session_type=='ms':
-        path = rootdir + '/src/data/raw_data/GardensPointWalking'
+        path = rootdir + '/data/raw_data/GardensPointWalking'
         test_paths = sorted(glob.glob(path + "/day_right/*"))
         return test_paths
     else:

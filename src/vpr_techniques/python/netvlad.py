@@ -6,6 +6,8 @@ import os
 import PIL.Image as Image
 import numpy as np
 
+
+NAME = 'NetVLAD'
 configfile = os.path.join(PATCHNETVLAD_ROOT_DIR, 'configs/netvlad_extract.ini')
 
 assert os.path.isfile(configfile)
