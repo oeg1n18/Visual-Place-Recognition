@@ -9,6 +9,7 @@ import os
 from torch.utils.data import DataLoader
 from src.data.utils import VprDataset
 from tqdm import tqdm
+import src.config as config
 
 BATCH_SIZE = 32
 DESCRIPTOR_SIZE = 128
@@ -19,7 +20,7 @@ NAME = 'DenseVLAD'
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-PROJECT_ROOT = '/home/ollie/Documents/Github/Visual-Place-Recognition/src/'
+PROJECT_ROOT = config.root_dir + '/src/'
 
 def get_base_model(base_model='resnet50'):
     if base_model == 'resnet50':
@@ -65,7 +66,7 @@ def compute_vlad(desc, centers, codebook_size=100):
 
 
 def recluster(max_images=200):
-    db_imgs = GardensPointWalking.get_map_paths(rootdir=PROJECT_ROOT)
+    db_imgs = GardensPointWalking.get_map_paths(rootdir=config.root_dir)
     if len(db_imgs) > max_images:
         db_imgs = db_imgs[:max_images]
     if len(db_imgs) > BATCH_SIZE:
@@ -76,7 +77,7 @@ def recluster(max_images=200):
         feature_maps = feature_extractor(imgs)
     desc = get_descriptors(feature_maps, desc_size=DESCRIPTOR_SIZE)
     clusters = cluster_descriptors(desc, codebook_size=100)
-    np.save(PROJECT_ROOT + "vpr_techniques/python/techniques/densevlad/clusters.npy", clusters)
+    np.save(config.root_dir + "/src/vpr_techniques/python/techniques/densevlad/clusters.npy", clusters)
 
 
 ## ===================================== VPR Functions ==============================================================
@@ -86,9 +87,9 @@ feature_extractor, preprocess = get_base_model(base_model=BASE_MODEL)
 if RECLUSTER:
     recluster(max_images=200)
 
-centers = np.load(PROJECT_ROOT + "vpr_techniques/python/techniques/densevlad/clusters.npy")
+centers = np.load(config.root_dir + "/src/vpr_techniques/python/techniques/densevlad/clusters.npy")
 
-def compute_query_desc(Q):
+def compute_query_desc(Q, dataset_name=None):
     if len(Q) > BATCH_SIZE:
         dl = DataLoader(VprDataset(Q, transform=preprocess), batch_size=BATCH_SIZE)
         vlads = []
@@ -100,19 +101,30 @@ def compute_query_desc(Q):
             vlad = np.vstack([compute_vlad(d, centers, codebook_size=CODEBOOK_SIZE) for d in desc])
             vlads.append(vlad)
         vlads = np.vstack(vlads)
-        return vlads
     else:
         imgs = np.stack([preprocess(Image.open(pth)) for pth in Q])
         feature_maps = feature_extractor(imgs)
         desc = get_descriptors(feature_maps, DESCRIPTOR_SIZE)
         vlads = np.vstack([compute_vlad(d, centers, codebook_size=CODEBOOK_SIZE) for d in desc])
+
+    if dataset_name is not None:
+        pth = config.root_dir + '/src/descriptors/' + dataset_name
+        if os.path.exists(pth):
+            if os.path.exists(pth + '/' + NAME):
+                np.save(config.root_dir + '/src/descriptors/' + dataset_name
+                        + '/' + NAME + '/q_desc.npy', vlads)
+            else:
+                os.mkdir(pth + '/' + NAME)
+                np.save(config.root_dir + '/src/descriptors/' + dataset_name
+                        + '/' + NAME + '/q_desc.npy', vlads)
+
         return vlads
 
 
 
 
 
-def compute_map_features(M):
+def compute_map_features(M, dataset_name=None):
     if len(M) > BATCH_SIZE:
         dl = DataLoader(VprDataset(M, transform=preprocess), batch_size=BATCH_SIZE)
         vlads = []
@@ -124,13 +136,23 @@ def compute_map_features(M):
             vlad = np.vstack([compute_vlad(d, centers, codebook_size=CODEBOOK_SIZE) for d in desc])
             vlads.append(vlad)
         vlads = np.vstack(vlads)
-        return vlads
     else:
         imgs = np.stack([preprocess(Image.open(pth)) for pth in M])
         feature_maps = feature_extractor(imgs)
         desc = get_descriptors(feature_maps, DESCRIPTOR_SIZE)
         vlads = np.vstack([compute_vlad(d, centers, codebook_size=CODEBOOK_SIZE) for d in desc])
-        return vlads
+
+    if dataset_name is not None:
+        pth = config.root_dir + '/src/descriptors/' + dataset_name
+        if os.path.exists(pth):
+            if os.path.exists(pth + '/' + NAME):
+                np.save(config.root_dir + '/src/descriptors/' + dataset_name
+                        + '/' + NAME + '/m_desc.npy', vlads)
+            else:
+                os.mkdir(pth + '/' + NAME)
+                np.save(config.root_dir + '/src/descriptors/' + dataset_name
+                        + '/' + NAME + '/m_desc.npy', vlads)
+    return vlads
 
 
 def perform_vpr(q_path, M):

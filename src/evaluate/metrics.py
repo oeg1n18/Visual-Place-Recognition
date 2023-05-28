@@ -12,10 +12,11 @@ from sklearn.metrics import ConfusionMatrixDisplay
 import sklearn
 import wandb
 from PIL import Image
+from src.evaluate import view_matches
 
 
 class Metrics:
-    def __init__(self, method_name, dataset_name, Fq, Fm, GT, GTsoft=None, matching_method=None, rootdir=None):
+    def __init__(self, method_name, dataset_name, Fq, Fm, GT, GTsoft=None, matching_method=None, rootdir=None, q_pths=None, db_pths=None):
         wandb.login()
         self.run = wandb.init(
             project="VPR-Metrics",
@@ -31,6 +32,8 @@ class Metrics:
         )
 
         self.rootdir = rootdir
+        self.q_pths = q_pths
+        self.db_pths = db_pths
         self.method_name = method_name
         self.dataset_name = dataset_name
         self.Fq = Fq
@@ -56,6 +59,12 @@ class Metrics:
         self.PRcurve(matching=matching)
         self.confusion_matrix(matching='single')
 
+        # Visualize the matches
+        if self.q_pths is not None and self.db_pths is not None:
+            self.view_matches(self.q_pths, self.db_pths, self.GT, self.S,
+                              self.dataset_name, self.method_name,
+                              matching=threshold_type, GTsoft=self.GTsoft)
+
         metrics = {"method": self.method_name,
                    "dataset": self.dataset_name,
                    "gt_type": 'GTsoft' if isinstance(self.GTsoft, type(np.ones(1))) else 'GThard',
@@ -71,6 +80,32 @@ class Metrics:
         metrics_table = wandb.Table(dataframe=pd.DataFrame.from_dict(metrics))
         self.run.log({"metrics": metrics_table})
         wandb.finish()
+
+    def view_matches(self, q_pths, db_pths, GT, S, dataset, method, matching='single', GTsoft=None, show=False):
+        if matching == 'single':
+            M = matching_methods.best_match_per_query(S)
+        elif matching == 'auto':
+            M = matching_methods.thresholding(S, 'auto')
+        elif type(matching) == float:
+            M = matching_methods.thresholding(S, matching)
+
+        TP = []
+        FP = []
+
+        GT = GTsoft if GTsoft else GT
+
+        for i in GT.shape[0]:
+            for j in GT.shape[1]
+                if GT[i, j] == 0 and M[i, j] == 1:
+                    FP.append([j, i])
+                if GT[i, j] == 1 and M[i, j] == 1:
+                    TP.append([j, i])
+
+        TP, FP = np.array(TP), np.array(FP)
+
+        img = view_matches.show(db_pths, q_pths, TP, FP, show=show)
+
+        wandb.log({'matches_' + self.dataset_name: wandb.Image(img)})
 
     def precision(self, matching='single'):
         if matching == 'single':
@@ -116,6 +151,7 @@ class Metrics:
         elif type(matching) == float:
             M = matching_methods.thresholding(self.S, matching)
         return sklearn.metrics.recall_score(self.GT.flatten().astype(int), M.flatten().astype(int))
+
 
     def createPR(self, matching='multi', n_thresh=100):
         """
