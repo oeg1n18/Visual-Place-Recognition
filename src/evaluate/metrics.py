@@ -1,22 +1,28 @@
+import os
+
 import numpy as np
 import sklearn.metrics as m
 import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
-
+import seaborn as sns
+import matplotlib.pyplot as plt
 import src.evaluate.matching as matching_methods
+from sklearn.metrics import ConfusionMatrixDisplay
 import sklearn
 import wandb
+from PIL import Image
+
 
 class Metrics:
-    def __init__(self, method_name, dataset_name, Fq, Fm, GT, GTsoft=None, matching_method=None):
+    def __init__(self, method_name, dataset_name, Fq, Fm, GT, GTsoft=None, matching_method=None, rootdir=None):
         wandb.login()
         self.run = wandb.init(
-            project = "VPR-Metrics",
-            name = method_name,
-            tags = [method_name, dataset_name, 'GTsoft' if isinstance(GTsoft, type(np.ones(1))) else 'GThard'],
+            project="VPR-Metrics",
+            name=method_name,
+            tags=[method_name, dataset_name, 'GTsoft' if isinstance(GTsoft, type(np.ones(1))) else 'GThard'],
 
-            config = {
+            config={
                 'method': method_name,
                 'dataset': dataset_name,
                 'GT_type': 'GTsoft' if isinstance(GTsoft, type(np.ones(1))) else 'GThard',
@@ -24,6 +30,7 @@ class Metrics:
             }
         )
 
+        self.rootdir = rootdir
         self.method_name = method_name
         self.dataset_name = dataset_name
         self.Fq = Fq
@@ -50,19 +57,19 @@ class Metrics:
         self.confusion_matrix(matching='single')
 
         metrics = {"method": self.method_name,
-                  "dataset": self.dataset_name,
-                  "gt_type": 'GTsoft' if isinstance(self.GTsoft, type(np.ones(1))) else 'GThard',
-                  "session_type": 'single-session' if self.Fq.all() == self.Fm.all() else 'multi-session',
-                  "precision": [prec],
-                  "recall": [recall],
-                  "recall@1": [recallAt1],
-                  "recall@5": [recallAt5],
-                  "recall@10": [recallAt10],
-                  "recall@100precision": [recallAt100precision],
-                  "auprc": [auprc]}
+                   "dataset": self.dataset_name,
+                   "gt_type": 'GTsoft' if isinstance(self.GTsoft, type(np.ones(1))) else 'GThard',
+                   "session_type": 'single-session' if self.Fq.all() == self.Fm.all() else 'multi-session',
+                   "precision": [prec],
+                   "recall": [recall],
+                   "recall@1": [recallAt1],
+                   "recall@5": [recallAt5],
+                   "recall@10": [recallAt10],
+                   "recall@100precision": [recallAt100precision],
+                   "auprc": [auprc]}
         print(metrics)
         metrics_table = wandb.Table(dataframe=pd.DataFrame.from_dict(metrics))
-        self.run.log({"metrics":metrics_table})
+        self.run.log({"metrics": metrics_table})
         wandb.finish()
 
     def precision(self, matching='single'):
@@ -74,7 +81,6 @@ class Metrics:
             M = matching_methods.thresholding(self.S, matching)
         return sklearn.metrics.precision_score(self.GTsoft.flatten().astype(int), M.flatten().astype(int))
 
-
     def confusion_matrix(self, matching='single'):
         if matching == 'single':
             M = matching_methods.best_match_per_query(self.S)
@@ -83,10 +89,24 @@ class Metrics:
         elif type(matching) == float:
             M = matching_methods.thresholding(self.S, matching)
 
-        y_truth = self.GTsoft if isinstance(self.GTsoft, type(np.ones(1))) else self.GTF
-        wandb.sklearn.plot_confusion_matrix(y_truth.flatten().astype(int),
-                                            M.flatten().astype(int),
-                                            labels=["Negative", "Positive"])
+        y_truth = self.GTsoft if isinstance(self.GTsoft, type(np.ones(1))) else self.GThard
+
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        cm = sklearn.metrics.confusion_matrix(y_truth.flatten().astype(int), M.flatten().astype(int))
+        cm = ConfusionMatrixDisplay.from_predictions(y_truth.flatten().astype(int), M.flatten().astype(int),
+                                                     display_labels=['0', '1'], ax=ax)
+        ax.set_xlabel('Predicted labels')
+        ax.set_ylabel('True labels')
+        ax.set_title('Confusion Matrix')
+        ax.xaxis.set_ticklabels(['No Match', 'Place Match'])
+        ax.yaxis.set_ticklabels(['No Match', 'Place Match'])
+        cm.plot()
+
+        # labels, title and ticks
+        fig.savefig(self.rootdir + '/src/evaluate/tmp/plot.png')
+        plot = Image.open(self.rootdir + '/src/evaluate/tmp/plot.png')
+        wandb.log({'confmap_' + self.dataset_name: wandb.Image(plot)})
 
     def recall(self, matching='single'):
         if matching == 'single':
@@ -188,9 +208,10 @@ class Metrics:
             GTP = np.count_nonzero(GT)  # ground truth positive
 
         scores = np.concatenate((1 - S.flatten()[:, None], S.flatten()[:, None]), axis=1)
-        wandb.log({"roc": wandb.plot.roc_curve(GT.flatten().astype(int),
-                                               scores, labels=["No_Match", "Place_Match"],
-                                               classes_to_plot=[1])})
+        wandb.log({"roc_" + self.dataset_name: wandb.plot.roc_curve(GT.flatten().astype(int),
+                                                                    scores, labels=["No_Match", "Place_Match"],
+                                                                    classes_to_plot=[1],
+                                                                    title="ROC Curve - Dataset: " + self.dataset_name)})
 
     def PRcurve(self, matching='multi', n_thresh=100):
         assert (self.S.shape == self.GT.shape), "S_in, GThard and GTsoft must have the same shape"
@@ -221,8 +242,10 @@ class Metrics:
             GTP = np.count_nonzero(GT)  # ground truth positive
 
         scores = np.concatenate((1 - S.flatten()[:, None], S.flatten()[:, None]), axis=1)
-        wandb.log({"pr": wandb.plot.pr_curve(GT.flatten().astype(int), scores, labels=["No_Match", "Place_Match"],
-                                               classes_to_plot=[1])})
+        wandb.log({"pr_" + self.dataset_name: wandb.plot.pr_curve(GT.flatten().astype(int), scores,
+                                                                  labels=["No_Match", "Place_Match"],
+                                                                  classes_to_plot=[1],
+                                                                  title="PR Curve - Dataset: " + self.dataset_name)})
 
     def recallAtK(self, K=1):
         """

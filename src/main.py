@@ -1,12 +1,12 @@
 import argparse
 from src.data.datasets import GardensPointWalking
+from src.data.datasets import StLucia
+from src.data.datasets import SFU
 from src.vpr_techniques.python import densevlad
 from src.vpr_techniques.python import patchnetvlad
 from src.vpr_techniques.python import netvlad
 from evaluate.metrics import Metrics
-import os
-
-PROJECT_ROOT = os.getcwd().replace('/main.py', '')
+import config
 
 """
 parser = argparse.ArgumentParser()
@@ -20,28 +20,29 @@ parser.add_argument('--language', choices=("python, cpp"), help="specify either 
 args = parser.parse_args()
 """
 
-M = GardensPointWalking.get_map_paths(rootdir=PROJECT_ROOT)
-Q = GardensPointWalking.get_query_paths(rootdir=PROJECT_ROOT)
-GT = GardensPointWalking.get_gtmatrix(rootdir=PROJECT_ROOT, gt_type='hard')
-GTsoft = GardensPointWalking.get_gtmatrix(rootdir=PROJECT_ROOT, gt_type='soft')
+dataset = SFU
+dataset.download(config.root_dir)
 
-
+M = dataset.get_map_paths(rootdir=config.root_dir)
+Q = dataset.get_query_paths(rootdir=config.root_dir)
+GT = dataset.get_gtmatrix(rootdir=config.root_dir, gt_type='hard')
+GTsoft = dataset.get_gtmatrix(rootdir=config.root_dir, gt_type='soft')
 
 Fq = densevlad.compute_query_desc(Q)
 Fm = densevlad.compute_map_features(M)
 
-eval = Metrics(densevlad.NAME, GardensPointWalking.NAME, Fq, Fm, GT, GTsoft=GTsoft)
+eval = Metrics(densevlad.NAME, dataset.NAME, Fq, Fm, GT, GTsoft=GTsoft, rootdir=config.root_dir)
 eval.log_metrics()
 
 Fq = netvlad.compute_query_desc(Q)
 Fm = netvlad.compute_map_features(M)
 
-eval = Metrics(netvlad.NAME, GardensPointWalking.NAME, Fq, Fm, GT, GTsoft=GTsoft)
+eval = Metrics(netvlad.NAME, dataset.NAME, Fq, Fm, GT, GTsoft=GTsoft, rootdir=config.root_dir)
 eval.log_metrics()
 
 Fq = patchnetvlad.compute_query_desc(Q)
 Fm = patchnetvlad.compute_map_features(M)
 
-eval = Metrics(patchnetvlad.NAME, GardensPointWalking.NAME, Fq, Fm, GT, GTsoft=GTsoft, matching_method=patchnetvlad.matching_function)
+eval = Metrics(patchnetvlad.NAME, dataset.NAME, Fq, Fm, GT, GTsoft=GTsoft,
+               matching_method=patchnetvlad.matching_function, rootdir=config.root_dir)
 eval.log_metrics()
-

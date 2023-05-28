@@ -1,4 +1,3 @@
-import src.data.datasets.Nordlands as Nordlands
 import src.data.datasets.GardensPointWalking as GardensPointWalking
 from torch.utils.data import Dataset
 import PIL.Image as Image
