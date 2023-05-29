@@ -22,7 +22,6 @@ from matplotlib import pyplot as plt
 import numpy as np
 from skimage.transform import resize
 from typing import Tuple, List, Optional
-import matching as matching_methods
 
 
 def add_frame(img_in: np.ndarray, color: Tuple[int, int, int]) -> np.ndarray:
@@ -113,7 +112,7 @@ def show(
         M = np.tile(np.expand_dims(M, -1), (1, 1, 3))
         img = np.concatenate([M, img], axis=1)
 
-    if show==True
+    if show==True:
         plt.figure()
         plt.imshow(img)
         plt.axis('off')

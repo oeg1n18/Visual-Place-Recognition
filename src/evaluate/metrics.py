@@ -18,6 +18,7 @@ from src.evaluate import view_matches
 class Metrics:
     def __init__(self, method_name, dataset_name, Fq, Fm, GT, GTsoft=None, matching_method=None, rootdir=None, q_pths=None, db_pths=None):
         wandb.login()
+
         self.run = wandb.init(
             project="VPR-Metrics",
             name=method_name,
@@ -62,7 +63,6 @@ class Metrics:
         # Visualize the matches
         if self.q_pths is not None and self.db_pths is not None:
             self.view_matches(self.q_pths, self.db_pths, self.GT, self.S,
-                              self.dataset_name, self.method_name,
                               matching=threshold_type, GTsoft=self.GTsoft)
 
         metrics = {"method": self.method_name,
@@ -81,7 +81,7 @@ class Metrics:
         self.run.log({"metrics": metrics_table})
         wandb.finish()
 
-    def view_matches(self, q_pths, db_pths, GT, S, dataset, method, matching='single', GTsoft=None, show=False):
+    def view_matches(self, q_pths, db_pths, GT, S, matching='single', GTsoft=None, show=False):
         if matching == 'single':
             M = matching_methods.best_match_per_query(S)
         elif matching == 'auto':
@@ -92,18 +92,19 @@ class Metrics:
         TP = []
         FP = []
 
-        GT = GTsoft if GTsoft else GT
+        GT = GTsoft if isinstance(GTsoft, type(np.zeros(1))) else GT
 
-        for i in GT.shape[0]:
-            for j in GT.shape[1]
+        for i in range(GT.shape[0]):
+            for j in range(GT.shape[1]):
                 if GT[i, j] == 0 and M[i, j] == 1:
                     FP.append([j, i])
                 if GT[i, j] == 1 and M[i, j] == 1:
                     TP.append([j, i])
 
         TP, FP = np.array(TP), np.array(FP)
-
-        img = view_matches.show(db_pths, q_pths, TP, FP, show=show)
+        db_imgs = [np.array(Image.open(pth)) for pth in db_pths]
+        q_imgs = [np.array(Image.open(pth)) for pth in q_pths]
+        img = view_matches.show(db_imgs, q_imgs, TP, FP, M=M, show=show)
 
         wandb.log({'matches_' + self.dataset_name: wandb.Image(img)})
 
@@ -128,7 +129,6 @@ class Metrics:
 
         fig = plt.figure()
         ax = fig.add_subplot(111)
-        cm = sklearn.metrics.confusion_matrix(y_truth.flatten().astype(int), M.flatten().astype(int))
         cm = ConfusionMatrixDisplay.from_predictions(y_truth.flatten().astype(int), M.flatten().astype(int),
                                                      display_labels=['0', '1'], ax=ax)
         ax.set_xlabel('Predicted labels')
