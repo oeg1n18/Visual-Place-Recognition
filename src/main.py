@@ -54,7 +54,6 @@ if args.mode == "describe":
 
 
 # ============== Evaluate Mode =======================
-if args.mode == "eval_metrics":
 
 
 dataset = GardensPointWalking
