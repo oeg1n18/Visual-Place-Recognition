@@ -1,0 +1,1 @@
+from src.vpr_techniques.techniques.mixvpr.models.aggregators.mixvpr import MixVPR

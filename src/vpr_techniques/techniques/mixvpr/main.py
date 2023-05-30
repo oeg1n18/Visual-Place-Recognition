@@ -1,8 +1,8 @@
 import pytorch_lightning as pl
 import torch
 from torch.optim import lr_scheduler
-import src.vpr_techniques.python.techniques.mixvpr.utils as utils
-import src.vpr_techniques.python.techniques.mixvpr.models.helper as helper
+import src.vpr_techniques.techniques.mixvpr.utils as utils
+import src.vpr_techniques.techniques.mixvpr.models.helper as helper
 
 class VPRModel(pl.LightningModule):
     """This is the main model for Visual Place Recognition

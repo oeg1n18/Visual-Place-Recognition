@@ -1,11 +1,5 @@
-import argparse
 from src.data.datasets import GardensPointWalking
-from src.data.datasets import StLucia
-from src.data.datasets import SFU
-from src.vpr_techniques.python import densevlad
-from src.vpr_techniques.python import patchnetvlad
-from src.vpr_techniques.python import netvlad
-from src.vpr_techniques.python import mixvpr
+from src.vpr_techniques import mixvpr
 from evaluate.metrics import Metrics
 import config
 

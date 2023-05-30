@@ -1,6 +1,6 @@
 
-from src.vpr_techniques.python.techniques.mixvpr.models import backbones
-from src.vpr_techniques.python.techniques.mixvpr.models import aggregators
+from src.vpr_techniques.techniques.mixvpr.models import backbones
+from src.vpr_techniques.techniques.mixvpr.models import aggregators
 
 def get_backbone(backbone_arch='resnet50',
                  pretrained=True,

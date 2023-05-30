@@ -40,7 +40,7 @@ def add_frame(img_in: np.ndarray, color: Tuple[int, int, int]) -> np.ndarray:
     return img
 
 
-def show(
+def show_figure(
     db_imgs: List[np.ndarray],
     q_imgs: List[np.ndarray],
     TP: np.ndarray,
@@ -286,7 +286,7 @@ class Metrics:
         q_imgs = [np.array(Image.open(pth)) for pth in q_pths]
 
         # Build the Figure
-        img = show(db_imgs, q_imgs, TP, FP, M=M, show=show)
+        img = show_figure(db_imgs, q_imgs, TP, FP, M=P, show=show)
 
         # log the figure to wandb dashboard
         wandb.log({'matches_' + self.dataset_name: wandb.Image(img)})
