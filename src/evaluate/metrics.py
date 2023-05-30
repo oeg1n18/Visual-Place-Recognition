@@ -12,6 +12,32 @@ from PIL import Image
 from src.evaluate import view_matches
 
 
+def sim2preds(S: np.ndarray, threshold_type: str = 'single') -> np.ndarray:
+    """
+    Threshold type is either 'single' for single best match vpr. 'auto' for automatic threshold place matching
+    or a float e.g. 0.67. Similarities over the threshold will be considered a place match. The function returns a
+    boolean matrix.
+
+    :param S: Similarity Matrix
+    :param threshold_type: determines how the predictions are
+               computed from the similarity matrix. Is either 'single', 'auto' or a float e.g. 0.67
+    :return: boolean matrix of predictions
+    """
+
+    if threshold_type == 'single':
+        P = matching_methods.best_match_per_query(S)
+        return P
+    elif threshold_type == 'auto':
+        P = matching_methods.thresholding(S, 'auto')
+        return P
+    elif type(threshold_type) == float:
+        P = matching_methods.thresholding(S, threshold_type)
+        return P
+    else:
+        raise Exception("threshold_type must either be 'single', 'auto', or a float")
+
+
+
 class Metrics:
     def __init__(self, method_name: str,
                  dataset_name: str,
@@ -75,7 +101,7 @@ class Metrics:
 
         :param matching: determines the type of VPR session. Is either 'multi' session or 'single' session vpr. See 'https://arxiv.org/abs/2303.03281'
         :param threshold_type: determines how the predictions are
-               computed from the similarity matrix. Is either 'single', 'auto' or a float e.g. '0.67'
+               computed from the similarity matrix. Is either 'single', 'auto' or a float e.g. 0.67
 
         :return: None
         """
@@ -136,22 +162,15 @@ class Metrics:
         :param S: Similairy matirx row index corresponds to map image, column index corresponds to query image.
                   value at [row, index] is in the range 0-1 and corresponds to similiary of q_pths[row] to db_pths[column]
         :param threshold_type: determines how the predictions are
-               computed from the similarity matrix. Is either 'single', 'auto' or a float e.g. '0.67'
+               computed from the similarity matrix. Is either 'single', 'auto' or a float e.g. 0.67
         :param GTsoft: GT Matrix with the soft evaluations. see https://arxiv.org/abs/2303.03281
         :param show: True plot the figure locally False just logs to the wandb dashboard
         :return: None
         '''
         # Convert similarity matrix S into predictions matrix P
-        if threshold_type == 'single':
-            P = matching_methods.best_match_per_query(S)
-        elif threshold_type == 'auto':
-            P = matching_methods.thresholding(S, 'auto')
-        elif type(threshold_type) == float:
-            P = matching_methods.thresholding(S, threshold_type)
+        P = sim2preds(self.S, threshold_type=threshold_type)
 
-        TP = []
-        FP = []
-
+        TP, FP = [], []
         # Use GTsoft as ground truth if available
         GT = GTsoft if isinstance(GTsoft, type(np.zeros(1))) else GT
         # Collect index's of TP and FP predictions
@@ -179,18 +198,12 @@ class Metrics:
         the predictions are subequently used to compute the precision value.
 
         :param threshold_type: determines how the predictions are
-               computed from the similarity matrix. Is either 'single', 'auto' or a float e.g. '0.67'
+               computed from the similarity matrix. Is either 'single', 'auto' or a float e.g. 0.67
         :return: precision value
         '''
 
         # Compute the predictions from similarity matrix
-        if threshold_type == 'single':
-            P = matching_methods.best_match_per_query(self.S)
-        elif threshold_type == 'auto':
-            P = matching_methods.thresholding(self.S, 'auto')
-        elif type(threshold_type) == float:
-            P = matching_methods.thresholding(self.S, threshold_type)
-
+        P = sim2preds(self.S, threshold_type=threshold_type)
         return sklearn.metrics.precision_score(self.GTsoft.flatten().astype(int), P.flatten().astype(int))
 
     def confusion_matrix(self, threshold_type: str = 'single') -> None:
@@ -199,24 +212,18 @@ class Metrics:
         the predictions are subequently used to compute the confusion matrix which is logged to wandb
 
         :param threshold_type: determines how the predictions are
-               computed from the similarity matrix. Is either 'single', 'auto' or a float e.g. '0.67'
+               computed from the similarity matrix. Is either 'single', 'auto' or a float e.g. 0.67
         :return: None
         """
         # Compute the predictions from similarity matrix
-        if threshold_type == 'single':
-            M = matching_methods.best_match_per_query(self.S)
-        elif threshold_type == 'auto':
-            M = matching_methods.thresholding(self.S, 'auto')
-        elif type(threshold_type) == float:
-            M = matching_methods.thresholding(self.S, threshold_type)
-
+        P = sim2preds(self.S, threshold_type=threshold_type)
         y_truth = self.GTsoft if isinstance(self.GTsoft, type(np.ones(1))) else self.GThard
 
         # Create Figure
         fig = plt.figure()
         ax = fig.add_subplot(111)
         # Compute confusion matrix and plot it
-        cm = ConfusionMatrixDisplay.from_predictions(y_truth.flatten().astype(int), M.flatten().astype(int),
+        cm = ConfusionMatrixDisplay.from_predictions(y_truth.flatten().astype(int), P.flatten().astype(int),
                                                      display_labels=['0', '1'], ax=ax)
         # Lable the figure
         ax.set_xlabel('Predicted labels')
@@ -237,16 +244,11 @@ class Metrics:
         the predictions are subequently used to compute the recall
 
         :param threshold_type: determines how the predictions are
-               computed from the similarity matrix. Is either 'single', 'auto' or a float e.g. '0.67'
+               computed from the similarity matrix. Is either 'single', 'auto' or a float e.g. 0.67
         :return: None
         """
         # Compute the predictions from similarity matrix
-        if threshold_type == 'single':
-            P = matching_methods.best_match_per_query(self.S)
-        elif threshold_type == 'auto':
-            P = matching_methods.thresholding(self.S, 'auto')
-        elif type(threshold_type) == float:
-            P = matching_methods.thresholding(self.S, threshold_type)
+        P = sim2preds(self.S, threshold_type=threshold_type)
         return sklearn.metrics.recall_score(self.GT.flatten().astype(int), P.flatten().astype(int))
 
     def createPR(self, matching: str = 'multi', n_thresh: int = 100) -> tuple[np.ndarray, np.ndarray]:
