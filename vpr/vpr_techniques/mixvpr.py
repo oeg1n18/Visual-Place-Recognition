@@ -12,6 +12,7 @@ import torchvision.transforms as transforms
 import numpy as np
 from tqdm import tqdm
 
+from vpr.vpr_techniques.utils import save_descriptors
 
 # Note that images must be resized to 320x320
 model = VPRModel(backbone_arch='resnet50',
@@ -38,7 +39,7 @@ preprocess = torch.nn.Sequential(
     transforms.Resize(320))
 
 
-NAME = 'mixvpr'
+NAME = 'MixVPR'
 
 
 def compute_query_desc(Q, dataset_name=None):
@@ -53,18 +54,7 @@ def compute_query_desc(Q, dataset_name=None):
     else:
         imgs = torch.stack([preprocess(Image.open(pth)) for pth in Q])
         q_desc = model(imgs.to(config.device)).detach().cpu().numpy()
-
-    if dataset_name is not None:
-        pth = config.root_dir + '/vpr/descriptors/' + dataset_name
-        if os.path.exists(pth):
-            if os.path.exists(pth + '/' + NAME):
-                np.save(config.root_dir + '/vpr/descriptors/' + dataset_name
-                        + '/' + NAME + '/q_desc.npy', q_desc)
-            else:
-                os.mkdir(pth + '/' + NAME)
-                np.save(config.root_dir + '/vpr/descriptors/' + dataset_name
-                        + '/' + NAME + '/q_desc.npy', q_desc)
-
+    save_descriptors(dataset_name, NAME, q_desc, type='query')
     return q_desc
 
 
@@ -81,20 +71,9 @@ def compute_map_features(M, dataset_name=None):
             all_desc.append(model(batch.to(config.device)).detach().cpu().numpy())
         m_desc = np.vstack(all_desc)
     else:
-        imgs = torch.stack([preprocess(Image.open(pth)) for pth in Q])
+        imgs = torch.stack([preprocess(Image.open(pth)) for pth in M])
         m_desc = model(imgs.to(config.device)).detach().cpu().numpy()
-
-    if dataset_name is not None:
-        pth = config.root_dir + '/vpr/descriptors/' + dataset_name
-        if os.path.exists(pth):
-            if os.path.exists(pth + '/' + NAME):
-                np.save(config.root_dir + '/vpr/descriptors/' + dataset_name
-                        + '/' + NAME + '/q_desc.npy', m_desc)
-            else:
-                os.mkdir(pth + '/' + NAME)
-                np.save(config.root_dir + '/vpr/descriptors/' + dataset_name
-                        + '/' + NAME + '/q_desc.npy', m_desc)
-
+    save_descriptors(dataset_name, NAME, m_desc, type='map')
     return m_desc
 
 

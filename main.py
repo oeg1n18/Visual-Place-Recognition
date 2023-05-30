@@ -1,16 +1,17 @@
 from vpr.data.datasets import GardensPointWalking, SFU, StLucia
-from vpr.vpr_techniques import mixvpr, patchnetvlad, netvlad
 from vpr.evaluate.metrics import Metrics
+from vpr.vpr_techniques.utils import load_descriptors
 import config
+import argparse
 
-'''
+
 parser = argparse.ArgumentParser()
 
 parser.add_argument('--mode', required=True, choices=("describe", "eval_time", "eval_metrics", "eval_invariance"),
                     help='Specify either describe or evaluate', type=str)
 parser.add_argument('--dataset', choices=("SFU", "GardensPointWalking", "StLucia"),
                     help='specify one of the datasets from vpr/data/raw_data', type=str, default="StLucia")
-parser.add_argument('--technique', choices=("patchNetVLAD", "denseVLAD", "mixvpr", "NetVLAD"),
+parser.add_argument('--method', choices=("patchNetVLAD", "denseVLAD", "MixVPR", "NetVLAD"),
                     help="specify one of the techniques from vpr/vpr_tecniques", type=str, default="patchNetVLAD")
 args = parser.parse_args()
 
@@ -25,15 +26,19 @@ else:
     dataset = GardensPointWalking
 
 # ============= Chose the method ================
-if args.technique == "patchNetVLAD":
+if args.method == "patchNetVLAD":
+    from vpr.vpr_techniques import patchnetvlad
     method = patchnetvlad
-elif args.technique == "denseVLAD":
-    method = densevlad
-elif args.technique == "NetVLAD":
+
+elif args.method == "NetVLAD":
+    from vpr.vpr_techniques import netvlad
     method = netvlad
-elif args.technqiue == "mixvpr":
+
+elif args.method == "MixVPR":
+    from vpr.vpr_techniques import mixvpr
     method = mixvpr
 else:
+    from vpr.vpr_techniques import patchnetvlad
     method = patchnetvlad
 
 
@@ -49,25 +54,19 @@ if args.mode == "describe":
 
 
 # ============== Evaluate Mode =======================
+if args.mode == "eval_metrics":
+    M = dataset.get_map_paths(rootdir=config.root_dir)
+    Q = dataset.get_query_paths(rootdir=config.root_dir)
+    GT = dataset.get_gtmatrix(rootdir=config.root_dir, gt_type='hard')
+    GTsoft = dataset.get_gtmatrix(rootdir=config.root_dir, gt_type='soft')
 
-'''
-dataset = GardensPointWalking
-M = dataset.get_map_paths(rootdir=config.root_dir)
-Q = dataset.get_query_paths(rootdir=config.root_dir)
-GT = dataset.get_gtmatrix(rootdir=config.root_dir, gt_type='hard')
-GTsoft = dataset.get_gtmatrix(rootdir=config.root_dir, gt_type='soft')
-
-
-Fq = mixvpr.compute_query_desc(Q)
-Fm = mixvpr.compute_map_features(M)
-
-eval = Metrics(mixvpr.NAME, dataset.NAME, Fq, Fm, GT, q_pths=Q, db_pths=M, GTsoft=GTsoft, rootdir=config.root_dir)
-eval.log_metrics()
+    Fq, Fm = load_descriptors(dataset.NAME, method.NAME)
+    eval = Metrics(method.NAME, dataset.NAME, Fq, Fm, GT, q_pths=Q, db_pths=M, GTsoft=GTsoft, rootdir=config.root_dir)
+    eval.log_metrics()
 
 
-Fq = patchnetvlad.compute_query_desc(Q)
-Fm = patchnetvlad.compute_map_features(M)
+if args.mode == "eval_time":
+    raise NotImplementedError
 
-eval = Metrics(patchnetvlad.NAME, dataset.NAME, Fq, Fm, GT, q_pths=Q, db_pths=M, GTsoft=GTsoft,
-               matching_method=patchnetvlad.matching_function, rootdir=config.root_dir)
-eval.log_metrics()
+if args.mode == "eval_invariance":
+    raise NotImplementedError

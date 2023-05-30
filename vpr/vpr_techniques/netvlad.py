@@ -2,6 +2,7 @@
 from vpr.vpr_techniques.patchnetvlad import PATCHNETVLAD_ROOT_DIR
 import configparser
 from vpr.vpr_techniques.patchnetvlad import PatchNetVLADFeatureExtractor
+from vpr.vpr_techniques.utils import save_descriptors
 import os
 import PIL.Image as Image
 import numpy as np
@@ -19,37 +20,16 @@ def compute_query_desc(Q, dataset_name=None):
     q_imgs = [np.array(Image.open(img_path)) for img_path in Q]
     q_desc = feature_extractor.compute_features(q_imgs)
     q_desc = q_desc / np.linalg.norm(q_desc, axis=1, keepdims=True)
-
-    if dataset_name is not None:
-        pth = config.root_dir + '/vpr/descriptors/' + dataset_name
-        if os.path.exists(pth):
-            if os.path.exists(pth + '/' + NAME):
-                np.save(config.root_dir + '/vpr/descriptors/python/' + dataset_name
-                        + '/' + NAME + '/q_desc.npy', q_desc)
-            else:
-                os.mkdir(pth + '/' + NAME)
-                np.save(config.root_dir + '/vpr/descriptors/python/' + dataset_name
-                        + '/' + NAME + '/q_desc.npy', q_desc)
-
+    save_descriptors(dataset_name, NAME, q_desc, type='query')
     return q_desc
 
 def compute_map_features(M, dataset_name=None):
     m_imgs = [np.array(Image.open(img_path)) for img_path in M]
     m_desc = feature_extractor.compute_features(m_imgs)
     m_desc = m_desc / np.linalg.norm(m_desc, axis=1, keepdims=True)
-
-    if dataset_name is not None:
-        pth = config.root_dir + '/vpr/descriptors/' + dataset_name
-        if os.path.exists(pth):
-            if os.path.exists(pth + '/' + NAME):
-                np.save(config.root_dir + '/vpr/descriptors/python/' + dataset_name
-                        + '/' + NAME + '/q_desc.npy', m_desc)
-            else:
-                os.mkdir(pth + '/' + NAME)
-                np.save(config.root_dir + '/vpr/descriptors/python/' + dataset_name
-                        + '/' + NAME + '/q_desc.npy', m_desc)
-
+    save_descriptors(dataset_name, NAME, m_desc, type='map')
     return m_desc
+
 
 def perform_vpr(q_path, M):
     q_img = [np.array(Image.open(q_path))]

@@ -5,8 +5,10 @@ from vpr.vpr_techniques.techniques.patchnetvlad.feature_extractor_patchnetvlad i
 import os
 import PIL.Image as Image
 import numpy as np
+from vpr.vpr_techniques.utils import save_descriptors
 
 NAME = 'PatchNetVLAD'
+
 configfile = os.path.join(PATCHNETVLAD_ROOT_DIR, 'configs/speed.ini')
 
 assert os.path.isfile(configfile)
@@ -18,34 +20,14 @@ feature_extractor = PatchNetVLADFeatureExtractor(config)
 def compute_query_desc(Q, dataset_name=None):
     q_imgs = [np.array(Image.open(img_path)) for img_path in Q]
     _, q_patch = feature_extractor.compute_features(q_imgs)
-
-    if dataset_name is not None:
-        pth = config.root_dir + '/vpr/descriptors/' + dataset_name
-        if os.path.exists(pth):
-            if os.path.exists(pth + '/' + NAME):
-                np.save(config.root_dir + '/vpr/descriptors/' + dataset_name
-                        + '/' + NAME + '/q_desc.npy', q_patch)
-            else:
-                os.mkdir(pth + '/' + NAME)
-                np.save(config.root_dir + '/vpr/descriptors/' + dataset_name
-                        + '/' + NAME + '/q_desc.npy', q_patch)
+    save_descriptors(dataset_name, NAME, q_patch, type='query')
     return q_patch
 
 
 def compute_map_features(M, dataset_name=None):
     m_imgs = [np.array(Image.open(img_path)) for img_path in M]
     _, m_patch = feature_extractor.compute_features(m_imgs)
-
-    if dataset_name is not None:
-        pth = config.root_dir + '/vpr/descriptors/' + dataset_name
-        if os.path.exists(pth):
-            if os.path.exists(pth + '/' + NAME):
-                np.save(config.root_dir + '/vpr/descriptors/' + dataset_name
-                        + '/' + NAME + '/q_desc.npy', m_patch)
-            else:
-                os.mkdir(pth + '/' + NAME)
-                np.save(config.root_dir + '/vpr/descriptors/' + dataset_name
-                        + '/' + NAME + '/q_desc.npy', m_patch)
+    save_descriptors(dataset_name, NAME, m_patch, type='map')
     return m_patch
 
 
