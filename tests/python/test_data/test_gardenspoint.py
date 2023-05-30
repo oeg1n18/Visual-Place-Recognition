@@ -3,7 +3,7 @@ import unittest
 import cv2
 import numpy as np
 
-import src.data.datasets.GardensPointWalking as gp
+import vpr.data.datasets.GardensPointWalking as gp
 
 class TestStringMethods(unittest.TestCase):
 

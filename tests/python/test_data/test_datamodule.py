@@ -2,7 +2,7 @@
 import unittest
 import numpy as np
 
-import src.data.utils as dataset
+import vpr.data.utils as dataset
 
 class TestDataModule(unittest.TestCase):
     def test_dm_setup(self):
