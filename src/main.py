@@ -9,6 +9,8 @@ from src.vpr_techniques.python import mixvpr
 from evaluate.metrics import Metrics
 import config
 
+
+"""
 parser = argparse.ArgumentParser()
 
 parser.add_argument('--mode', required=True, choices=("describe", "eval_time", "eval_metrics", "eval_invariance"),
@@ -54,7 +56,7 @@ if args.mode == "describe":
 
 
 # ============== Evaluate Mode =======================
-
+"""
 
 dataset = GardensPointWalking
 M = dataset.get_map_paths(rootdir=config.root_dir)

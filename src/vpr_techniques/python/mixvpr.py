@@ -12,6 +12,8 @@ import tqdm
 import torchvision.transforms as transforms
 import numpy as np
 from tqdm import tqdm
+
+
 # Note that images must be resized to 320x320
 model = VPRModel(backbone_arch='resnet50',
                  layers_to_crop=[4],
