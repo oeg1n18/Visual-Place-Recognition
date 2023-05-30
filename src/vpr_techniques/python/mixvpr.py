@@ -3,7 +3,7 @@ import os
 from torch.utils.data import DataLoader
 
 from src.data.utils import VprDataset
-from src.vpr_techniques.python.techniques.MixVPR.main import VPRModel
+from src.vpr_techniques.python.techniques.mixvpr.main import VPRModel
 import torch
 import src.config as config
 from torchvision.models import ResNet50_Weights
@@ -17,7 +17,7 @@ from tqdm import tqdm
 # Note that images must be resized to 320x320
 model = VPRModel(backbone_arch='resnet50',
                  layers_to_crop=[4],
-                 agg_arch='MixVPR',
+                 agg_arch='mixvpr',
                  agg_config={'in_channels' : 1024,
                              'in_h' : 20,
                              'in_w' : 20,
@@ -27,7 +27,7 @@ model = VPRModel(backbone_arch='resnet50',
                              'out_rows' : 4},
                 ).to(config.device)
 
-weight_pth = config.root_dir + '/src/vpr_techniques/python/techniques/MixVPR/weights/resnet50_MixVPR_4096_channels(1024)_rows(4).ckpt'
+weight_pth = config.root_dir + '/src/vpr_techniques/python/techniques/mixvpr/weights/resnet50_MixVPR_4096_channels(1024)_rows(4).ckpt'
 
 state_dict = torch.load(weight_pth)
 model.load_state_dict(state_dict)
@@ -39,7 +39,7 @@ preprocess = torch.nn.Sequential(
     transforms.Resize(320))
 
 
-NAME = 'MixVPR'
+NAME = 'mixvpr'
 
 
 def compute_query_desc(Q, dataset_name=None):

@@ -17,7 +17,7 @@ parser.add_argument('--mode', required=True, choices=("describe", "eval_time", "
                     help='Specify either describe or evaluate', type=str)
 parser.add_argument('--dataset', choices=("SFU", "GardensPointWalking", "StLucia"),
                     help='specify one of the datasets from src/data/raw_data', type=str, default="StLucia")
-parser.add_argument('--technique', choices=("patchNetVLAD", "denseVLAD", "MixVPR", "NetVLAD"),
+parser.add_argument('--technique', choices=("patchNetVLAD", "denseVLAD", "mixvpr", "NetVLAD"),
                     help="specify one of the techniques from src/vpr_tecniques", type=str, default="patchNetVLAD")
 args = parser.parse_args()
 
@@ -38,7 +38,7 @@ elif args.technique == "denseVLAD":
     method = densevlad
 elif args.technique == "NetVLAD":
     method = netvlad
-elif args.technqiue == "MixVPR":
+elif args.technqiue == "mixvpr":
     method = mixvpr
 else:
     method = patchnetvlad
@@ -76,9 +76,11 @@ Fm = mixvpr.compute_map_features(M)
 eval = Metrics(mixvpr.NAME, dataset.NAME, Fq, Fm, GT, q_pths=Q, db_pths=M, GTsoft=GTsoft, rootdir=config.root_dir)
 eval.log_metrics()
 
+"""
 Fq = patchnetvlad.compute_query_desc(Q)
 Fm = patchnetvlad.compute_map_features(M)
 
 eval = Metrics(patchnetvlad.NAME, dataset.NAME, Fq, Fm, GT, q_pths=Q, db_pths=M, GTsoft=GTsoft,
                matching_method=patchnetvlad.matching_function, rootdir=config.root_dir)
 eval.log_metrics()
+"""
