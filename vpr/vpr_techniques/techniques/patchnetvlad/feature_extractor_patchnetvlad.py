@@ -125,7 +125,7 @@ class PatchNetVLADFeatureExtractor(FeatureExtractor):
         return num_regions
 
 
-    def compute_features(self, imgs: List[np.ndarray]) -> np.ndarray:
+    def compute_features(self, imgs: List[np.ndarray], disable_pbar) -> np.ndarray:
         pool_size = int(self.config['global_params']['num_pcs'])
 
         img_set = ImageDataset(imgs)
@@ -140,7 +140,7 @@ class PatchNetVLADFeatureExtractor(FeatureExtractor):
                 patch_feats = np.empty((len(img_set), pool_size, self.num_patches), dtype=np.float32)
 
             for iteration, (input_data, indices) in \
-                    enumerate(tqdm(test_data_loader), 1):
+                    enumerate(tqdm(test_data_loader, disable=disable_pbar), 1):
                 indices_np = indices.detach().numpy()
                 input_data = input_data.to(self.device)
                 image_encoding = self.model.encoder(input_data)

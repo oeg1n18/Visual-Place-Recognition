@@ -85,10 +85,10 @@ class HDCDELF(FeatureExtractor):
 
         self.DELF = DELF() # local DELF descriptor
 
-    def compute_features(self, imgs: List[np.ndarray]) -> np.ndarray:
+    def compute_features(self, imgs: List[np.ndarray], disable_pbar=False) -> np.ndarray:
         from vpr.vpr_techniques.techniques.delf.hdc import HDC
 
-        D_local = self.DELF.compute_features(imgs)
+        D_local = self.DELF.compute_features(imgs, disable_pbar=disable_pbar)
         D_holistic = HDC(D_local).compute_holistic()
 
         return D_holistic

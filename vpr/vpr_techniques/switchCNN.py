@@ -15,12 +15,12 @@ selection_model = mobilenetModule.load_from_checkpoint(checkpoint_path="techniqu
 
 
 @torch.no_grad()
-def compute_query_desc(Q, dataset_name=None):
+def compute_query_desc(Q, dataset_name=None, disable_pbar=False):
     if len(Q) > config.batch_size:
         selection_dl = DataLoader(VprDataset(Q, transform=mobilenet_transform), batch_size=config.batch_size,
                                   shuffle=False)
         selections = []
-        for batch in selection_dl:
+        for batch in tqdm(selection_dl, desc='Computing Query Descriptors', disable=disable_pbar):
             selections = torch.argmax(selection_model(batch.to(config.device)).detach().cpu(), dim=1)
             selections += list(np.array(selections))
         selections = np.array(selections)
@@ -62,23 +62,22 @@ def compute_query_desc(Q, dataset_name=None):
     for i, desc in enumerate(q_desc_mixvpr):
         q_desc[mixvpr_idx.squeeze()[i]] = desc
     del mixvpr
-
     return (q_desc, selections)
 
 
 @torch.no_grad()
-def compute_map_features(M, dataset_name=None):
+def compute_map_features(M, dataset_name=None, disable_pbar=False):
     from vpr.vpr_techniques import cosplace
-    m_desc_cosplace = cosplace.compute_map_features(M)
+    m_desc_cosplace = cosplace.compute_map_features(M, disable_pbar=disable_pbar)
     del cosplace
     from vpr.vpr_techniques import netvlad
-    m_desc_netvlad = netvlad.compute_map_features(M)
+    m_desc_netvlad = netvlad.compute_map_features(M, disable_pbar=disable_pbar)
     del netvlad
     from vpr.vpr_techniques import delf
-    m_desc_delf = delf.compute_map_features(M)
+    m_desc_delf = delf.compute_map_features(M, disable_pbar=disable_pbar)
     del delf
     from vpr.vpr_techniques import mixvpr
-    m_desc_mixvpr = mixvpr.compute_map_features(M)
+    m_desc_mixvpr = mixvpr.compute_map_features(M, disable_pbar=disable_pbar)
     del mixvpr
     return (m_desc_cosplace, m_desc_netvlad, m_desc_delf, m_desc_mixvpr)
 

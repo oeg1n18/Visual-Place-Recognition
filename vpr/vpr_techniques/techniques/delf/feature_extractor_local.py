@@ -35,18 +35,17 @@ class LocalFeatureExtractor(FeatureExtractor):
 class DELF(LocalFeatureExtractor):
     def __init__(self):
         import tensorflow_hub as hub
-
         self.delf = hub.load('https://tfhub.dev/google/delf/1').signatures['default']
 
-    def compute_features(self, imgs: List[np.ndarray]) -> np.ndarray:
+    def compute_features(self, imgs: List[np.ndarray], disable_pbar=False) -> np.ndarray:
 
-        D_local = self.compute_local_features(imgs)
+        D_local = self.compute_local_features(imgs, disable_pbar=disable_pbar)
 
         return D_local
 
-    def compute_local_features(self, imgs: List[np.ndarray]) -> List[np.ndarray]:
+    def compute_local_features(self, imgs: List[np.ndarray], disable_pbar=False) -> List[np.ndarray]:
         D = []
-        for img in tqdm(imgs):
+        for img in tqdm(imgs, desc='Computing Feeatures', disable=disable_pbar):
             D.append(self.compute_local_delf_descriptor(img))
 
         return D

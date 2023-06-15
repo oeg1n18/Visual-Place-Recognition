@@ -1,3 +1,4 @@
+from sklearn.metrics.pairwise import cosine_similarity
 
 from vpr.vpr_techniques.patchnetvlad import PATCHNETVLAD_ROOT_DIR
 import configparser
@@ -19,17 +20,17 @@ config = configparser.ConfigParser()
 config.read(configfile)
 feature_extractor = PatchNetVLADFeatureExtractor(config)
 @torch.no_grad()
-def compute_query_desc(Q, dataset_name=None):
+def compute_query_desc(Q, dataset_name=None, disable_pbar=False):
     q_imgs = [np.array(Image.open(img_path)) for img_path in Q]
-    q_desc = feature_extractor.compute_features(q_imgs)
+    q_desc = feature_extractor.compute_features(q_imgs, disable_pbar=disable_pbar)
     q_desc = q_desc / np.linalg.norm(q_desc, axis=1, keepdims=True)
     if dataset_name is not None:
         save_descriptors(dataset_name, NAME, q_desc, type='query')
     return q_desc
 @torch.no_grad()
-def compute_map_features(M, dataset_name=None):
+def compute_map_features(M, dataset_name=None, disable_pbar=False):
     m_imgs = [np.array(Image.open(img_path)) for img_path in M]
-    m_desc = feature_extractor.compute_features(m_imgs)
+    m_desc = feature_extractor.compute_features(m_imgs, disable_pbar=disable_pbar)
     m_desc = m_desc / np.linalg.norm(m_desc, axis=1, keepdims=True)
     if dataset_name is not None:
         save_descriptors(dataset_name, NAME, m_desc, type='map')
@@ -44,4 +45,5 @@ def perform_vpr(q_path, M):
     i, j = np.unravel_index(S.argmax(), S.shape)
     return int(j), float(S[i, j])
 
-matching_method = None
+def matching_method(q_desc, m_desc):
+    return cosine_similarity(q_desc, m_desc)

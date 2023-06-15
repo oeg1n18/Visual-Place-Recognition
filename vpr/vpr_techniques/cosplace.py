@@ -1,5 +1,6 @@
 import torch
 from PIL import Image
+from sklearn.metrics.pairwise import cosine_similarity
 from torch.utils.data import DataLoader
 from torchvision.transforms import transforms
 from tqdm import tqdm
@@ -20,13 +21,11 @@ preprocess = transforms.Compose([
             transforms.Resize((512, 512)),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ])
-def compute_query_desc(Q, dataset_name=None):
+def compute_query_desc(Q, dataset_name=None, disable_pbar=False):
     if len(Q) > config.batch_size:
         dl = DataLoader(VprDataset(Q, transform=preprocess), batch_size=config.batch_size)
-        pbar = tqdm(dl)
         all_desc = []
-        for batch in pbar:
-            pbar.set_description("Computing Query Descriptors")
+        for batch in tqdm(dl, desc='Computing Query Descriptors', disable=disable_pbar):
             all_desc.append(model(batch.to(config.device)).detach().cpu().numpy())
         q_desc = np.vstack(all_desc)
     else:
@@ -36,13 +35,11 @@ def compute_query_desc(Q, dataset_name=None):
         save_descriptors(dataset_name, NAME, q_desc, type='query')
     return q_desc
 
-def compute_map_features(M, dataset_name=None):
+def compute_map_features(M, dataset_name=None, disable_pbar=False):
     if len(M) > config.batch_size:
         dl = DataLoader(VprDataset(M, transform=preprocess), batch_size=config.batch_size)
-        pbar = tqdm(dl)
         all_desc = []
-        for batch in pbar:
-            pbar.set_description("Computing Query Descriptors")
+        for batch in tqdm(dl, desc='Computing Map Descriptors', disable=disable_pbar):
             all_desc.append(model(batch.to(config.device)).detach().cpu().numpy())
         m_desc = np.vstack(all_desc)
     else:
@@ -53,11 +50,12 @@ def compute_map_features(M, dataset_name=None):
     return m_desc
 
 
-def perform_vpr(q_path, M):
+def perform_vpr(q_path, m_desc):
     img = preprocess(Image.open(q_path))
     q_desc = model(img[None, :].to(config.device)).detach().cpu()
-    S = np.matmul(q_desc, M.T)
+    S = np.matmul(q_desc, m_desc.T)
     i, j = np.unravel_index(S.argmax(), S.shape)
     return int(j), float(S[i, j])
 
-matching_method = None
+def matching_method(q_desc, m_desc):
+    return cosine_similarity(q_desc, m_desc)

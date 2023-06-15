@@ -19,17 +19,17 @@ config.read(configfile)
 feature_extractor = PatchNetVLADFeatureExtractor(config)
 
 @torch.no_grad()
-def compute_query_desc(Q, dataset_name=None):
+def compute_query_desc(Q, dataset_name=None, disable_pbar=False):
     q_imgs = [np.array(Image.open(img_path)) for img_path in Q]
-    _, q_patch = feature_extractor.compute_features(q_imgs)
+    _, q_patch = feature_extractor.compute_features(q_imgs, disable_pbar)
     if dataset_name is not None:
         save_descriptors(dataset_name, NAME, q_patch, type='query')
     return q_patch
 
 @torch.no_grad()
-def compute_map_features(M, dataset_name=None):
+def compute_map_features(M, dataset_name=None, disable_pbar=False):
     m_imgs = [np.array(Image.open(img_path)) for img_path in M]
-    _, m_patch = feature_extractor.compute_features(m_imgs)
+    _, m_patch = feature_extractor.compute_features(m_imgs, disable_pbar=disable_pbar)
     if dataset_name is not None:
         save_descriptors(dataset_name, NAME, m_patch, type='map')
     return m_patch

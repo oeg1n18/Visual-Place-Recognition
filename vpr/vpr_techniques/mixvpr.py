@@ -1,5 +1,6 @@
 import os
 
+from sklearn.metrics.pairwise import cosine_similarity
 from torch.utils.data import DataLoader
 from vpr.data.utils import VprDataset
 from vpr.vpr_techniques.techniques.mixvpr.main import VPRModel
@@ -42,13 +43,11 @@ preprocess = torch.nn.Sequential(
 NAME = 'MixVPR'
 
 @torch.no_grad()
-def compute_query_desc(Q, dataset_name=None):
+def compute_query_desc(Q, dataset_name=None, disable_pbar=False):
     if len(Q) > config.batch_size:
         dl = DataLoader(VprDataset(Q, transform=preprocess), batch_size=config.batch_size)
-        pbar = tqdm(dl)
         all_desc = []
-        for batch in pbar:
-            pbar.set_description("Computing Query Descriptors")
+        for batch in tqdm(dl, desc='Computing Query Descriptors', disable=disable_pbar):
             all_desc.append(model(batch.to(config.device)).detach().cpu().numpy())
         q_desc = np.vstack(all_desc)
     else:
@@ -62,13 +61,11 @@ def compute_query_desc(Q, dataset_name=None):
 
 
 @torch.no_grad()
-def compute_map_features(M, dataset_name=None):
+def compute_map_features(M, dataset_name=None, disable_pbar=False):
     if len(M) > config.batch_size:
         dl = DataLoader(VprDataset(M, transform=preprocess), batch_size=config.batch_size)
-        pbar = tqdm(dl)
         all_desc = []
-        for batch in pbar:
-            pbar.set_description("Computing Map Descriptors")
+        for batch in tqdm(dl, desc='Computing Map Descriptors', disable=disable_pbar):
             all_desc.append(model(batch.to(config.device)).detach().cpu().numpy())
         m_desc = np.vstack(all_desc)
     else:
@@ -93,5 +90,6 @@ def perform_vpr(q_path, M):
     return int(j), float(S[i, j])
 
 
-matching_method = None
+def matching_method(q_desc, m_desc):
+    return cosine_similarity(q_desc, m_desc)
 

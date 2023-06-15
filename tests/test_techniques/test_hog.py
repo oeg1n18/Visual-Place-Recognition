@@ -61,3 +61,11 @@ def test_perform_vpr():
     assert isinstance(score, float)
     assert 0 <= score <= 1.01
 
+def test_matching_method():
+    Q = dataset.get_query_paths(rootdir=config.root_dir)
+    M = dataset.get_map_paths(rootdir=config.root_dir)
+    m_desc = method.compute_map_features(M[:10])
+    q_desc = method.compute_query_desc(Q[:3])
+    S = method.matching_method(q_desc, m_desc)
+    assert S.shape[0] == 3
+    assert S.shape[1] == 10

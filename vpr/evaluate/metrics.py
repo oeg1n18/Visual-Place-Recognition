@@ -174,7 +174,7 @@ class Metrics:
                 'method': method_name,
                 'dataset': dataset_name,
                 'GT_type': 'GTsoft' if isinstance(GTsoft, type(np.ones(1))) else 'GThard',
-                'session_type': 'single-session' if Fq.all() == Fm.all() else 'multi-session'
+                'session_type': 'multi-session'
             }
         )
 
@@ -240,7 +240,7 @@ class Metrics:
         wandb.run.summary["method"] = self.method_name
         wandb.run.summary["dataset"] = self.dataset_name
         wandb.run.summary["gt_type"] = 'GTsoft' if isinstance(self.GTsoft, type(np.ones(1))) else 'GThard'
-        wandb.run.summary["session_type"] = 'single-session' if self.Fq.all() == self.Fm.all() else 'multi-session'
+        wandb.run.summary["session_type"] = 'multi-session'
 
 
         # Log the metrics into a wandb table
@@ -560,6 +560,12 @@ class Metrics:
 
         :return: tuple of (descriptor dimension, descriptor dtype, descriptor memory size nbytes)
         """
+        if self.method_name == 'CoHog':
+            type = str(self.Fm[0].dtype)
+            nbytes = self.Fm[0].nbytes
+            size = self.Fm[0].shape[0] * self.Fm[0].shape[1]
+            return size, type, nbytes
+
         type = str(self.Fm.dtype)
         nbytes = self.Fm[0].nbytes
         size = self.Fm.shape[1]

@@ -1,5 +1,6 @@
 import numpy as np
 import os
+import pickle
 
 
 def save_descriptors(dataset_name, method_name, desc, type='query'):
@@ -8,26 +9,50 @@ def save_descriptors(dataset_name, method_name, desc, type='query'):
         file_name = '/m_desc.npy' if type == 'map' else '/q_desc.npy'
         if os.path.exists(pth):
             if os.path.exists(pth + '/' + method_name):
-                np.save(pth + '/' + method_name + file_name, desc)
+                if method_name == 'CoHog':
+                    with open(pth + '/' + method_name + file_name[:-4] + '.pkl', 'wb') as f:
+                        pickle.dump(desc, f)
+                else:
+                    np.save(pth + '/' + method_name + file_name, desc)
             else:
                 os.mkdir(pth + '/' + method_name)
-                np.save(pth + '/' + method_name + file_name, desc)
+                if method_name == 'CoHog':
+                    with open(pth + '/' + method_name + file_name[:-4] + '.pkl', 'wb') as f:
+                        pickle.dump(desc, f)
+                else:
+                    np.save(pth + '/' + method_name + file_name, desc)
         else:
             os.mkdir(pth)
             os.mkdir(pth + '/' + method_name)
-            np.save(pth + '/' + method_name + file_name, desc)
+            if method_name == 'CoHog':
+                with open(pth + '/' + method_name + file_name[:-4] + '.pkl', 'wb') as f:
+                    pickle.dump(desc, f)
+            else:
+                np.save(pth + '/' + method_name + file_name, desc)
 
 
 def load_descriptors(dataset_name, method_name):
     try:
-        q_pth = os.getcwd().replace('vpr_technqiues', '') + '/vpr/descriptors/' + \
-                dataset_name + '/' + method_name + '/q_desc.npy'
-        m_pth = os.getcwd().replace('vpr_technqiues', '') + '/vpr/descriptors/' + \
-                dataset_name + '/' + method_name + '/m_desc.npy'
+        if method_name == 'CoHog':
+            q_pth = os.getcwd().replace('vpr_technqiues', '') + '/vpr/descriptors/' + \
+                    dataset_name + '/' + method_name + '/q_desc.pkl'
+            m_pth = os.getcwd().replace('vpr_technqiues', '') + '/vpr/descriptors/' + \
+                    dataset_name + '/' + method_name + '/m_desc.pkl'
 
-        q_desc = np.load(q_pth)
-        m_desc = np.load(m_pth)
-        return q_desc, m_desc
+            with open(q_pth, 'rb') as f:
+                q_desc = pickle.load(f)
+            with open(m_pth, 'rb') as f:
+                m_desc = pickle.load(f)
+            return q_desc, m_desc
+        else:
+            q_pth = os.getcwd().replace('vpr_technqiues', '') + '/vpr/descriptors/' + \
+                    dataset_name + '/' + method_name + '/q_desc.npy'
+            m_pth = os.getcwd().replace('vpr_technqiues', '') + '/vpr/descriptors/' + \
+                    dataset_name + '/' + method_name + '/m_desc.npy'
+
+            q_desc = np.load(q_pth)
+            m_desc = np.load(m_pth)
+            return q_desc, m_desc
     except:
         raise Exception("Descriptors with dataset: " + dataset_name + " and method "
                         + method_name + " are not computed. Please compute them first")
