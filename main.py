@@ -12,7 +12,7 @@ parser.add_argument('--mode', required=True, choices=("describe", "eval_time", "
                     help='Specify either describe or evaluate', type=str)
 parser.add_argument('--dataset', choices=("SFU", "GardensPointWalking", "StLucia"),
                     help='specify one of the datasets from vpr/data/raw_data', type=str, default="StLucia")
-parser.add_argument('--method', choices=("patchNetVLAD", "AP-GeM", "MixVPR", "NetVLAD", "CosPlace", "HDC-DELF"),
+parser.add_argument('--method', choices=("patchNetVLAD", "HOG", "MixVPR", "NetVLAD", "CosPlace", "HDC-DELF"),
                     help="specify one of the techniques from vpr/vpr_tecniques", type=str, default="patchNetVLAD")
 args = parser.parse_args()
 
@@ -36,9 +36,9 @@ elif args.method == "NetVLAD":
 elif args.method == "MixVPR":
     from vpr.vpr_techniques import mixvpr
     method = mixvpr
-elif args.method == "AP-GeM":
-    from vpr.vpr_techniques import ap_gem
-    method = ap_gem
+elif args.method == "HOG":
+    from vpr.vpr_techniques import hog
+    method = hog
 elif args.method == "CosPlace":
     from vpr.vpr_techniques import cosplace
     method = cosplace

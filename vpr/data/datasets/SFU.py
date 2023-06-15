@@ -1,6 +1,7 @@
 import os
 import urllib
 import zipfile
+import urllib.request
 from os.path import isdir
 
 import numpy as np

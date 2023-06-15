@@ -10,10 +10,11 @@ import numpy as np
 import time
 from sklearn.metrics.pairwise import cosine_similarity
 from vpr.vpr_techniques.utils import save_descriptors
+from tqdm import tqdm
 
 NAME = 'HOG'
 
-def compute_query_desc(Q, dataset_name=None):
+def compute_query_desc(Q, dataset_name=None, pbar=False):
     ref_map = [cv2.imread(pth, 0) for pth in Q]
 
     winSize = (512, 512)
@@ -24,7 +25,7 @@ def compute_query_desc(Q, dataset_name=None):
 
     hog = cv2.HOGDescriptor(winSize, blockSize, blockStride, cellSize, nbins)
     ref_desc_list = []
-    for ref_image in ref_map:
+    for ref_image in tqdm(ref_map, desc='Computing Query Descriptors', disable=pbar):
         if ref_image is not None:
             hog_desc = hog.compute(cv2.resize(ref_image, winSize))
         ref_desc_list.append(hog_desc)
@@ -33,7 +34,7 @@ def compute_query_desc(Q, dataset_name=None):
         save_descriptors(dataset_name, NAME, q_desc, type='query')
     return q_desc
 
-def compute_map_features(M, dataset_name=None):
+def compute_map_features(M, dataset_name=None, pbar=False):
     ref_map = [cv2.imread(pth, 0) for pth in M]
 
     winSize = (512, 512)
@@ -44,7 +45,7 @@ def compute_map_features(M, dataset_name=None):
 
     hog = cv2.HOGDescriptor(winSize, blockSize, blockStride, cellSize, nbins)
     ref_desc_list = []
-    for ref_image in ref_map:
+    for ref_image in tqdm(ref_map, desc='Computing Map Descriptors', disable=pbar):
         if ref_image is not None:
             hog_desc = hog.compute(cv2.resize(ref_image, winSize))
         ref_desc_list.append(hog_desc)
