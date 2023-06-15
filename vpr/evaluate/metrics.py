@@ -194,7 +194,7 @@ class Metrics:
         else:
             self.S = cosine_similarity(Fq, Fm)
 
-    def log_metrics(self, matching='multi', threshold_type='single'):
+    def run_evaluation(self, matching='multi', threshold_type='single'):
         """
         This function logs all available metrics to the weights and biases dashboard.
 
@@ -223,34 +223,34 @@ class Metrics:
 
         # Log visualizations of matches
         if self.q_pths is not None and self.db_pths is not None:
-            self.view_matches(self.q_pths, self.db_pths, self.GT, self.S,
+            self.view_matches(self.q_pths, self.db_pths, self.GT,
                               threshold_type=threshold_type, GTsoft=self.GTsoft)
 
         # =============== Logging Metrics ====================================
-        metrics = {"method": self.method_name,
-                   "dataset": self.dataset_name,
-                   "gt_type": 'GTsoft' if isinstance(self.GTsoft, type(np.ones(1))) else 'GThard',
-                   "session_type": 'single-session' if self.Fq.all() == self.Fm.all() else 'multi-session',
-                   "precision": [prec],
-                   "recall": [recall],
-                   "recall@1": [recallAt1],
-                   "recall@5": [recallAt5],
-                   "recall@10": [recallAt10],
-                   "recall@100precision": [recallAt100precision],
-                   "auprc": [auprc],
-                   "descriptor_dim": d_dim,
-                   "descriptor_type": d_type,
-                   "descriptor_nbytes": d_bytes}
+        wandb.run.summary["precision_" + self.dataset_name] = prec
+        wandb.run.summary["recall_" + self.dataset_name] = recall
+        wandb.run.summary["recall@1_" + self.dataset_name] = recallAt1
+        wandb.run.summary["recall@5_" + self.dataset_name] = recallAt5
+        wandb.run.summary["recall@10_" + self.dataset_name] = recallAt10
+        wandb.run.summary["recall@100precision_" + self.dataset_name] = recallAt100precision
+        wandb.run.summary["auprc_" + self.dataset_name] = auprc
+        wandb.run.summary["descriptor_dim_" + self.dataset_name] = d_dim
+        wandb.run.summary["descriptor_type"] = d_type
+        wandb.run.summary["descriptor_nbytes"] = d_bytes
+        wandb.run.summary["method"] = self.method_name
+        wandb.run.summary["dataset"] = self.dataset_name
+        wandb.run.summary["gt_type"] = 'GTsoft' if isinstance(self.GTsoft, type(np.ones(1))) else 'GThard'
+        wandb.run.summary["session_type"] = 'single-session' if self.Fq.all() == self.Fm.all() else 'multi-session'
+
 
         # Log the metrics into a wandb table
-        metrics_table = wandb.Table(dataframe=pd.DataFrame.from_dict(metrics))
-        self.run.log({"metrics": metrics_table})
+        #metrics_table = wandb.Table(dataframe=pd.DataFrame.from_dict(metrics))
+        #self.run.log({"metrics": metrics_table})
         wandb.finish()
 
     def view_matches(self, q_pths: list[str], db_pths: list[str],
-                     GT: np.ndarray[np.float32], S: np.ndarray[np.float32],
-                     threshold_type: str = 'single', GTsoft: np.ndarray[np.float32] = None,
-                     show: bool = False) -> None:
+                     GT: np.ndarray[np.float32],
+                     threshold_type: str = 'single', GTsoft: np.ndarray[np.float32] = None, show: bool = False) -> None:
         '''
         This method produces a figure displaying images from a TP or FP VPR preidction. The figure is logged to
         weights and biases

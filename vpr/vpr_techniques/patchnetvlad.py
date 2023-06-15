@@ -1,3 +1,4 @@
+
 from patchnetvlad.tools import PATCHNETVLAD_ROOT_DIR
 import configparser
 from vpr.vpr_techniques.techniques.patchnetvlad.feature_extractor_patchnetvlad import \
@@ -6,6 +7,7 @@ import os
 import PIL.Image as Image
 import numpy as np
 from vpr.vpr_techniques.utils import save_descriptors
+import torch
 
 NAME = 'PatchNetVLAD'
 
@@ -16,29 +18,32 @@ config = configparser.ConfigParser()
 config.read(configfile)
 feature_extractor = PatchNetVLADFeatureExtractor(config)
 
-
+@torch.no_grad()
 def compute_query_desc(Q, dataset_name=None):
     q_imgs = [np.array(Image.open(img_path)) for img_path in Q]
     _, q_patch = feature_extractor.compute_features(q_imgs)
-    save_descriptors(dataset_name, NAME, q_patch, type='query')
+    if dataset_name is not None:
+        save_descriptors(dataset_name, NAME, q_patch, type='query')
     return q_patch
 
-
+@torch.no_grad()
 def compute_map_features(M, dataset_name=None):
     m_imgs = [np.array(Image.open(img_path)) for img_path in M]
     _, m_patch = feature_extractor.compute_features(m_imgs)
-    save_descriptors(dataset_name, NAME, m_patch, type='map')
+    if dataset_name is not None:
+        save_descriptors(dataset_name, NAME, m_patch, type='map')
     return m_patch
 
 
-def matching_function(q_desc_patches, m_desc_patches):
+def matching_method(q_desc_patches, m_desc_patches):
     S = feature_extractor.local_matcher_from_numpy_single_scale(q_desc_patches, m_desc_patches)
     return S
 
-
+@torch.no_grad()
 def perform_vpr(q_path, m_desc):
     q_img = [np.array(Image.open(q_path))]
-    q_desc = feature_extractor.compute_features(q_img)
-    S = matching_function(q_desc, m_desc)
+    _, q_desc = feature_extractor.compute_features(q_img)
+    S = matching_method(q_desc, m_desc)
     i, j = np.unravel_index(S.argmax(), S.shape)
-    return j, S[i, j]
+    return int(j), float(S[i, j])
+

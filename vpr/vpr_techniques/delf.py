@@ -1,23 +1,11 @@
-
-from vpr.vpr_techniques.patchnetvlad import PATCHNETVLAD_ROOT_DIR
-import configparser
-from vpr.vpr_techniques.patchnetvlad import PatchNetVLADFeatureExtractor
-from vpr.vpr_techniques.utils import save_descriptors
-import os
-import PIL.Image as Image
-import torch
-import torch
-import torch
+from PIL import Image
 import numpy as np
+from vpr.vpr_techniques.techniques.delf.feature_extractor_holistic import HDCDELF
+from vpr.vpr_techniques.utils import save_descriptors
+import torch
+NAME = 'HDC-DELF'
 
-
-NAME = 'NetVLAD'
-configfile = os.path.join(PATCHNETVLAD_ROOT_DIR, 'configs/netvlad_extract.ini')
-
-assert os.path.isfile(configfile)
-config = configparser.ConfigParser()
-config.read(configfile)
-feature_extractor = PatchNetVLADFeatureExtractor(config)
+feature_extractor = HDCDELF()
 @torch.no_grad()
 def compute_query_desc(Q, dataset_name=None):
     q_imgs = [np.array(Image.open(img_path)) for img_path in Q]
@@ -34,7 +22,6 @@ def compute_map_features(M, dataset_name=None):
     if dataset_name is not None:
         save_descriptors(dataset_name, NAME, m_desc, type='map')
     return m_desc
-
 @torch.no_grad()
 def perform_vpr(q_path, M):
     q_img = [np.array(Image.open(q_path))]
