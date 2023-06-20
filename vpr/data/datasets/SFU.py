@@ -6,31 +6,32 @@ from os.path import isdir
 
 import numpy as np
 import glob
+import config
 
 NAME = 'SFU'
-def get_query_paths(session_type='ms', rootdir=None):
-    if isdir(rootdir + '/vpr/data/raw_data/SFU'):
-        return sorted(glob.glob(rootdir + '/vpr/data/raw_data/SFU/jan/*.jpg'))
+def get_query_paths(session_type='ms'):
+    if isdir(config.root_dir + '/vpr/data/raw_data/SFU'):
+        return sorted(glob.glob(config.root_dir + '/vpr/data/raw_data/SFU/jan/*.jpg'))
     else:
         print("must download dataset first into rootdir + /vpr/data/raw_data/ directory")
 
 
-def get_map_paths(session_type='ms', rootdir=None):
-    if isdir(rootdir + '/vpr/data/raw_data/SFU'):
-        return sorted(glob.glob(rootdir + '/vpr/data/raw_data/SFU/dry/*.jpg'))
+def get_map_paths(session_type='ms'):
+    if isdir(config.root_dir + '/vpr/data/raw_data/SFU'):
+        return sorted(glob.glob(config.root_dir + '/vpr/data/raw_data/SFU/dry/*.jpg'))
     else:
         print("must download dataset first into rootdir + /vpr/data/raw_data/ directory")
 
-def get_gtmatrix(session_type='ms', gt_type='hard', rootdir=None):
-    gt_data = np.load(rootdir + '/vpr/data/raw_data/SFU/GT.npz')
+def get_gtmatrix(session_type='ms', gt_type='hard'):
+    gt_data = np.load(config.root_dir + '/vpr/data/raw_data/SFU/GT.npz')
     if gt_type=='hard':
         GT = gt_data['GThard'].astype('bool')
     else:
         GT = gt_data['GTsoft'].astype('bool')
-    return GT
+    return GT.astype(np.uint8)
 
 def download(rootdir=None):
-    destination = rootdir + '/vpr/data/raw_data/SFU'
+    destination = config.root_dir + '/vpr/data/raw_data/SFU'
     print('===== SFU dataset does not exist. Download to ' + destination + '...')
     fn = 'SFU.zip'
     url = 'https://www.tu-chemnitz.de/etit/proaut/datasets/' + fn

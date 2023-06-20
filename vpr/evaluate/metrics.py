@@ -1,3 +1,5 @@
+import sys
+
 import numpy as np
 import sklearn.metrics as m
 from typing import Callable
@@ -565,6 +567,13 @@ class Metrics:
             nbytes = self.Fm[0].nbytes
             size = self.Fm[0].shape[0] * self.Fm[0].shape[1]
             return size, type, nbytes
+
+        if self.method_name == 'switchCNN':
+            type = str(self.Fm[0][0].dtype)
+            nbytes = sys.getsizeof(self.Fm)/len(self.Fm[0])
+            size = self.Fm[0][0].size
+            return size, type, nbytes
+
 
         type = str(self.Fm.dtype)
         nbytes = self.Fm[0].nbytes

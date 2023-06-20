@@ -13,31 +13,31 @@ def test_contains_name():
     assert type(method.NAME) == type("abc")
 
 def test_query_desc_shape():
-    Q = dataset.get_query_paths(rootdir=config.root_dir)
+    Q = dataset.get_query_paths()
     q_desc = method.compute_query_desc(Q[:config.batch_size - 1])
     assert q_desc.shape[0] == config.batch_size - 1
 
 def test_query_desc_shape2():
-    Q = dataset.get_query_paths(rootdir=config.root_dir)
+    Q = dataset.get_query_paths()
     q_desc = method.compute_query_desc(Q[:config.batch_size + 1])
     assert q_desc.shape[0] == config.batch_size + 1
 def test_map_desc_shape():
-    M = dataset.get_map_paths(rootdir=config.root_dir)
+    M = dataset.get_map_paths()
     m_desc = method.compute_map_features(M[:config.batch_size - 1])
     assert m_desc.shape[0] == config.batch_size - 1
 
 def test_map_desc_shape2():
-    M = dataset.get_map_paths(rootdir=config.root_dir)
+    M = dataset.get_map_paths()
     m_desc = method.compute_map_features(M[:config.batch_size + 1])
     assert m_desc.shape[0] == config.batch_size + 1
 
 def test_query_desc_type():
-    Q = dataset.get_query_paths(rootdir=config.root_dir)
+    Q = dataset.get_query_paths()
     q_desc = method.compute_query_desc(Q[:1])
     assert q_desc.dtype == np.float32
 
 def test_map_desc_shape():
-    M = dataset.get_map_paths(rootdir=config.root_dir)
+    M = dataset.get_map_paths()
     m_desc = method.compute_map_features(M[:1])
     assert m_desc.dtype == np.float32
 
@@ -60,10 +60,12 @@ def test_perform_vpr():
     assert 0 <= score <= 1.
 
 def test_matching_method():
-    Q = dataset.get_query_paths(rootdir=config.root_dir)
-    M = dataset.get_map_paths(rootdir=config.root_dir)
+    Q = dataset.get_query_paths()
+    M = dataset.get_map_paths()
     m_desc = method.compute_map_features(M[:10])
     q_desc = method.compute_query_desc(Q[:3])
     S = method.matching_method(q_desc, m_desc)
     assert S.shape[0] == 3
     assert S.shape[1] == 10
+    assert S.max() < 1.001
+    assert S.min() > 0.

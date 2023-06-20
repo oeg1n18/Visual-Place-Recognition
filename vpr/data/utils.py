@@ -1,39 +1,9 @@
 import vpr.data.datasets.GardensPointWalking as GardensPointWalking
 from torch.utils.data import Dataset
 import PIL.Image as Image
-
-
-class DataModule:
-    def __init__(self, dataset='Nordlands', session_type='ms', gt_type='hard'):
-
-        assert gt_type in ['hard', 'soft']
-        assert session_type in ['ss', 'ms']
-
-        self.session_type = session_type
-        self.gt_type = gt_type
-        self.dataset = dataset
-
-        self.Q = self.get_query_paths(dataset)
-        self.M = self.get_map_paths(dataset)
-        self.GT = self.get_gtmatrix(dataset)
-
-    def get_query_paths(self, dataset):
-        if dataset == 'Nordlands':
-            return Nordlands.get_query_paths(session_type=self.session_type)
-        elif dataset == 'GardensPointWalking':
-            return GardensPointWalking.get_query_paths(session_type=self.session_type)
-
-    def get_map_paths(self, dataset):
-        if dataset == 'Nordlands':
-            return Nordlands.get_map_paths(session_type=self.session_type)
-        elif dataset == 'GardensPointWalking':
-            return GardensPointWalking.get_map_paths(session_type=self.session_type)
-
-    def get_gtmatrix(self, dataset, gt_type='hard'):
-        if dataset == 'Nordlands':
-            return Nordlands.get_gtmatrix(session_type=self.session_type, gt_type=gt_type)
-        elif dataset == 'GardensPointWalking':
-            return GardensPointWalking.get_gtmatrix(session_type=self.session_type, gt_type=self.gt_type)
+import matplotlib.pyplot as plt
+import numpy as np
+import random
 
 
 class VprDataset(Dataset):
@@ -50,3 +20,27 @@ class VprDataset(Dataset):
         if self.transform:
             img = self.transform(img)
         return img
+
+
+def view_dataset_matches(dataset):
+    M = dataset.get_map_paths()
+    Q = dataset.get_query_paths()
+    GT = dataset.get_gtmatrix()
+
+    Q_sample = random.sample(Q, k=1)
+    Q_sample_idx = Q.index(Q_sample[0])
+    ref_idx = [[i] for i, x in enumerate(GT[Q_sample_idx]) if x == 1]
+    n_correct_matches = len(ref_idx)
+    M = np.array(M)
+    Q_ref = M[ref_idx]
+    if len(Q_ref) == 0:
+        raise Exception("No reference Images")
+    plt.imshow(np.array(Image.open(Q_sample[0])))
+    plt.title("Query")
+    plt.axis('off')
+    plt.show()
+    for i in range(0, max(n_correct_matches, 2)):
+        plt.imshow(np.array(Image.open(Q_ref[i][0])))
+        plt.title("Ref")
+        plt.axis('off')
+        plt.show()

@@ -5,11 +5,12 @@ import zipfile
 import urllib.request
 import numpy as np
 from scipy.signal import convolve2d
+import config
 
 NAME = 'GardensPointWalking'
-def get_query_paths(session_type='ms', rootdir='/Users/olivergrainge/Documents/github/Visual-Place-Recognition'):
+def get_query_paths(session_type='ms'):
     if session_type=='ms':
-        path = rootdir + '/vpr/data/raw_data/GardensPointWalking'
+        path = config.root_dir + '/vpr/data/raw_data/GardensPointWalking'
         query_paths = sorted(glob.glob(path + "/night_right/*"))
         return query_paths
     else:
@@ -17,9 +18,9 @@ def get_query_paths(session_type='ms', rootdir='/Users/olivergrainge/Documents/g
 
 
 
-def get_map_paths(session_type='ms', rootdir='/Users/olivergrainge/Documents/github/Visual-Place-Recognition'):
+def get_map_paths(session_type='ms'):
     if session_type=='ms':
-        path = rootdir + '/vpr/data/raw_data/GardensPointWalking'
+        path = config.root_dir + '/vpr/data/raw_data/GardensPointWalking'
         test_paths = sorted(glob.glob(path + "/day_right/*"))
         return test_paths
     else:
@@ -27,20 +28,20 @@ def get_map_paths(session_type='ms', rootdir='/Users/olivergrainge/Documents/git
 
 #
 
-def get_gtmatrix(session_type='ms', gt_type='hard', rootdir='/Users/olivergrainge/Documents/github/Visual-Place-Recognition'):
+def get_gtmatrix(session_type='ms', gt_type='hard'):
     if session_type=='ms':
-        query_paths = get_query_paths(session_type=session_type, rootdir=rootdir)
-        map_paths = get_map_paths(session_type=session_type, rootdir=rootdir)
+        query_paths = get_query_paths(session_type=session_type)
+        map_paths = get_map_paths(session_type=session_type)
         gtmatrix = np.eye(len(map_paths)).astype('bool')
         if gt_type == 'soft':
             gtmatrix = convolve2d(gtmatrix.astype(int), np.ones((17,1), 'int'), mode='same').astype('bool')
-        return gtmatrix
+        return gtmatrix.astype(np.uint8)
     else:
         raise Exception("Only session_type=ms available for this GardensPoint Dataset")
 
 
-def download(rootdir=None):
-    destination = rootdir + '/vpr/data/raw_data/GardensPointWalking'
+def download():
+    destination = config.root_dir + '/vpr/data/raw_data/GardensPointWalking'
     print('===== GardensPoint dataset does not exist. Download to ' + destination + '...')
 
     fn = 'GardensPoint_Walking.zip'

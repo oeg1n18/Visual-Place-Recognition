@@ -1,53 +1,64 @@
 import pytest
 from vpr.data.datasets import GardensPointWalking
-from vpr.vpr_techniques import delf
+from vpr.vpr_techniques import switchCNN
 import config
 import numpy as np
 from glob import glob
 
 dataset = GardensPointWalking
-method = delf
-config.batch_size = 5
-
+method = switchCNN
+config.batch_size = 10
 
 def test_contains_name():
     assert type(method.NAME) == type("abc")
 
-
 def test_query_desc_shape():
     Q = dataset.get_query_paths()
     q_desc = method.compute_query_desc(Q[:config.batch_size - 1])
-    assert q_desc.shape[0] == config.batch_size - 1
-
+    assert len(q_desc[1]) == config.batch_size - 1
+    assert len(q_desc[0]) == config.batch_size - 1
 
 def test_query_desc_shape2():
     Q = dataset.get_query_paths()
     q_desc = method.compute_query_desc(Q[:config.batch_size + 1])
-    assert q_desc.shape[0] == config.batch_size + 1
-
-
+    assert len(q_desc[1]) == config.batch_size + 1
+    assert len(q_desc[0]) == config.batch_size + 1
 def test_map_desc_shape():
     M = dataset.get_map_paths()
     m_desc = method.compute_map_features(M[:config.batch_size - 1])
-    assert m_desc.shape[0] == config.batch_size - 1
-
+    assert len(m_desc) == 5
+    assert len(m_desc[0]) == config.batch_size - 1
+    assert len(m_desc[1]) == config.batch_size - 1
+    assert len(m_desc[2]) == config.batch_size - 1
+    assert len(m_desc[3]) == config.batch_size - 1
+    assert len(m_desc[4]) == config.batch_size - 1
 
 def test_map_desc_shape2():
     M = dataset.get_map_paths()
     m_desc = method.compute_map_features(M[:config.batch_size + 1])
-    assert m_desc.shape[0] == config.batch_size + 1
-
+    assert len(m_desc) == 5
+    assert len(m_desc[0]) == config.batch_size + 1
+    assert len(m_desc[1]) == config.batch_size + 1
+    assert len(m_desc[2]) == config.batch_size + 1
+    assert len(m_desc[3]) == config.batch_size + 1
+    assert len(m_desc[4]) == config.batch_size + 1
 
 def test_query_desc_type():
     Q = dataset.get_query_paths()
     q_desc = method.compute_query_desc(Q[:1])
-    assert q_desc.dtype == np.float32
-
+    assert q_desc[0][0].dtype == np.float32
 
 def test_map_desc_shape():
     M = dataset.get_map_paths()
     m_desc = method.compute_map_features(M[:1])
-    assert m_desc.dtype == np.float32
+    assert m_desc[0].dtype == np.float32
+    assert m_desc[1].dtype == np.float32
+    assert m_desc[2].dtype == np.float32
+    assert m_desc[3].dtype == np.float32
+    assert m_desc[4].dtype == np.float32
+
+
+
 
 
 

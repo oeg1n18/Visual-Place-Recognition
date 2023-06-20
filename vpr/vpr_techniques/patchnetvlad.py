@@ -39,11 +39,14 @@ def matching_method(q_desc_patches, m_desc_patches):
     S = feature_extractor.local_matcher_from_numpy_single_scale(q_desc_patches, m_desc_patches)
     return S
 
-@torch.no_grad()
-def perform_vpr(q_path, m_desc):
-    q_img = [np.array(Image.open(q_path))]
-    _, q_desc = feature_extractor.compute_features(q_img)
-    S = matching_method(q_desc, m_desc)
-    i, j = np.unravel_index(S.argmax(), S.shape)
-    return int(j), float(S[i, j])
+# These needs making consistent with the others
+class PlaceRecognition:
+    def __init__(self, m_desc):
+        self.m_desc = m_desc
 
+    def perform_vpr(self, q_path, disable_pbar=True):
+        q_img = [np.array(Image.open(q_path))]
+        _, q_desc = feature_extractor.compute_features(q_img, disable_pbar=disable_pbar)
+        S = matching_method(q_desc, self.m_desc)
+        i, j = np.unravel_index(S.argmax(), S.shape)
+        return int(j), float(S[i, j])

@@ -3,27 +3,28 @@ import os
 import urllib
 import urllib.request
 import zipfile
+import config
 
 import numpy as np
 
 NAME = 'StLucia'
-def get_query_paths(session_type='ms', rootdir='/Users/olivergrainge/Documents/github/Visual-Place-Recognition'):
-    return sorted(glob.glob(rootdir + '/vpr/data/raw_data/StLucia_small/180809_1545/*.jpg'))
+def get_query_paths(session_type='ms'):
+    return sorted(glob.glob(config.root_dir + '/vpr/data/raw_data/StLucia_small/180809_1545/*.jpg'))
 
 
-def get_map_paths(session_type='ms', rootdir='/Users/olivergrainge/Documents/github/Visual-Place-Recognition'):
-    return sorted(glob.glob(rootdir + '/vpr/data/raw_data/StLucia_small/100909_0845/*.jpg'))
+def get_map_paths(session_type='ms'):
+    return sorted(glob.glob(config.root_dir + '/vpr/data/raw_data/StLucia_small/100909_0845/*.jpg'))
 
-def get_gtmatrix(session_type='ms', gt_type='hard', rootdir='/Users/olivergrainge/Documents/github/Visual-Place-Recognition'):
-    gt_data = np.load(rootdir + '/vpr/data/raw_data/StLucia_small/GT.npz')
+def get_gtmatrix(session_type='ms', gt_type='soft'):
+    gt_data = np.load(config.root_dir + '/vpr/data/raw_data/StLucia_small/GT.npz')
     if gt_type=='hard':
         GT = gt_data['GThard'].astype('bool')
     else:
         GT = gt_data['GTsoft'].astype('bool')
-    return GT
+    return GT.astype(np.uint8)
 
-def download(rootdir=None):
-    destination = rootdir + '/vpr/data/raw_data/StLucia_small'
+def download():
+    destination = config.root_dir + '/vpr/data/raw_data/StLucia_small'
     print('===== StLucia dataset does not exist. Download to ' + destination + '...')
 
     fn = 'StLucia_small.zip'

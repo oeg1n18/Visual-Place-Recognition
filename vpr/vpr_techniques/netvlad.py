@@ -10,6 +10,7 @@ import torch
 import torch
 import torch
 import numpy as np
+import faiss
 
 
 NAME = 'NetVLAD'
@@ -36,14 +37,24 @@ def compute_map_features(M, dataset_name=None, disable_pbar=False):
         save_descriptors(dataset_name, NAME, m_desc, type='map')
     return m_desc
 
-@torch.no_grad()
-def perform_vpr(q_path, M):
-    q_img = [np.array(Image.open(q_path))]
-    q_desc = feature_extractor.compute_features(q_img)
-    q_desc = q_desc / np.linalg.norm(q_desc, axis=1, keepdims=True)
-    S = np.matmul(q_desc, M.T)
-    i, j = np.unravel_index(S.argmax(), S.shape)
-    return int(j), float(S[i, j])
+class PlaceRecognition:
+    def __init__(self, m_desc):
+        self.m_desc = m_desc
+        self.index = faiss.IndexFlatL2(m_desc.shape[1])
+        self.index.add(m_desc)
+
+    def perform_vpr(self, q_path):
+        if len(q_path) == 1:
+            q_desc = compute_query_desc(q_path, disable_pbar=True)
+            D, I = self.index.search(q_desc.astype(np.float32), 1)
+            I = I[0][0]
+            score = cosine_similarity(self.m_desc[I][None, :], q_desc)
+            return I, score
+        else:
+            q_desc = compute_query_desc(q_path)
+            D, I = self.index.search(q_desc.astype(np.float32),1)
+            scores = cosine_similarity(self.m_desc[I].squeeze(), q_desc)
+            return I.squeeze(), scores
 
 def matching_method(q_desc, m_desc):
     return cosine_similarity(q_desc, m_desc)

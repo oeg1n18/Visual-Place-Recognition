@@ -1,5 +1,6 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
+import faiss
 """
 Created on Thu Mar 26 14:49:42 2020
 
@@ -14,7 +15,7 @@ from tqdm import tqdm
 
 NAME = 'HOG'
 
-def compute_query_desc(Q, dataset_name=None, pbar=False):
+def compute_query_desc(Q, dataset_name=None, disable_pbar=False):
     ref_map = [cv2.imread(pth, 0) for pth in Q]
 
     winSize = (512, 512)
@@ -25,7 +26,7 @@ def compute_query_desc(Q, dataset_name=None, pbar=False):
 
     hog = cv2.HOGDescriptor(winSize, blockSize, blockStride, cellSize, nbins)
     ref_desc_list = []
-    for ref_image in tqdm(ref_map, desc='Computing Query Descriptors', disable=pbar):
+    for ref_image in tqdm(ref_map, desc='Computing Query Descriptors', disable=disable_pbar):
         if ref_image is not None:
             hog_desc = hog.compute(cv2.resize(ref_image, winSize))
         ref_desc_list.append(hog_desc)
@@ -34,7 +35,7 @@ def compute_query_desc(Q, dataset_name=None, pbar=False):
         save_descriptors(dataset_name, NAME, q_desc, type='query')
     return q_desc
 
-def compute_map_features(M, dataset_name=None, pbar=False):
+def compute_map_features(M, dataset_name=None, disable_pbar=False):
     ref_map = [cv2.imread(pth, 0) for pth in M]
 
     winSize = (512, 512)
@@ -45,7 +46,7 @@ def compute_map_features(M, dataset_name=None, pbar=False):
 
     hog = cv2.HOGDescriptor(winSize, blockSize, blockStride, cellSize, nbins)
     ref_desc_list = []
-    for ref_image in tqdm(ref_map, desc='Computing Map Descriptors', disable=pbar):
+    for ref_image in tqdm(ref_map, desc='Computing Map Descriptors', disable=disable_pbar):
         if ref_image is not None:
             hog_desc = hog.compute(cv2.resize(ref_image, winSize))
         ref_desc_list.append(hog_desc)
@@ -55,14 +56,33 @@ def compute_map_features(M, dataset_name=None, pbar=False):
     return m_desc
 
 
-def perform_vpr(q_path, m_desc):
-    q_desc = compute_query_desc([q_path])
-    S = matching_method(q_desc, m_desc)
-    i, j = np.unravel_index(S.argmax(), S.shape)
-    return int(j), float(S[i,j])
+class PlaceRecognition:
+    def __init__(self, m_desc):
+        self.m_desc = m_desc
+        self.index = faiss.IndexFlatL2(m_desc.shape[1])
+        self.index.add(m_desc)
 
+    def perform_vpr(self, q_path):
+        if isinstance(q_path, str):
+            q_desc = compute_query_desc([q_path], disable_pbar=True)
+            D, I = self.index.search(q_desc.astype(np.float32), 1)
+            I = I[0][0]
+            score = cosine_similarity(self.m_desc[I][None, :], q_desc)
+            return I.squeeze(), score.squeeze()
+        else:
+            q_desc = compute_query_desc(q_path)
+            D, I = self.index.search(q_desc.astype(np.float32), 1)
+            scores = cosine_similarity(self.m_desc[I].squeeze(), q_desc).diagonal()
+            return I.squeeze(), scores
+
+    def match(self, q_desc):
+        D, I = self.index.search(q_desc.astype(np.float32), 1)
+        scores = cosine_similarity(self.m_desc[I].squeeze(), q_desc).diagonal()
+        return I.squeeze(), scores
 
 def matching_method(q_desc, m_desc):
     return cosine_similarity(q_desc, m_desc)
+
+
 
 
