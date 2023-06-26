@@ -18,7 +18,7 @@ def get_gtmatrix(session_type='ms', gt_type='hard'):
     M = get_map_paths()
     assert len(Q) == len(M)
     GT = np.eye(len(Q)).astype(np.uint8)
-    return GT
+    return GT.transpose()
 
 
 def download():

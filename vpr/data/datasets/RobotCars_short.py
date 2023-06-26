@@ -31,4 +31,4 @@ def get_gtmatrix(session_type='ms', gt_type='hard'):
                 for reference in record[3:]:
                     m_idx = M.index(config.root_dir + '/vpr/data/raw_data/RototCars_short/ref_dusk/' + reference + '.jpg')
                     GT[q_idx, m_idx] = 1
-        return GT.astype(np.uint8)
+        return GT.astype(np.uint8).transpose()

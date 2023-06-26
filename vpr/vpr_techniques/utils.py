@@ -1,11 +1,11 @@
 import numpy as np
 import os
 import pickle
-
+import config
 
 def save_descriptors(dataset_name, method_name, desc, type='query'):
     if dataset_name is not None:
-        pth = os.getcwd().replace('vpr_techniques', '') + '/vpr/descriptors/' + dataset_name
+        pth = config.root_dir + '/vpr/descriptors/' + dataset_name
         file_name = '/m_desc.npy' if type == 'map' else '/q_desc.npy'
         if os.path.exists(pth):
             if os.path.exists(pth + '/' + method_name):
@@ -34,9 +34,9 @@ def save_descriptors(dataset_name, method_name, desc, type='query'):
 def load_descriptors(dataset_name, method_name):
     try:
         if method_name == 'CoHog' or method_name == 'switchCNN':
-            q_pth = os.getcwd().replace('vpr_technqiues', '') + '/vpr/descriptors/' + \
+            q_pth = config.root_dir + '/vpr/descriptors/' + \
                     dataset_name + '/' + method_name + '/q_desc.pkl'
-            m_pth = os.getcwd().replace('vpr_technqiues', '') + '/vpr/descriptors/' + \
+            m_pth = config.root_dir + '/vpr/descriptors/' + \
                     dataset_name + '/' + method_name + '/m_desc.pkl'
 
             with open(q_pth, 'rb') as f:
@@ -45,9 +45,9 @@ def load_descriptors(dataset_name, method_name):
                 m_desc = pickle.load(f)
             return q_desc, m_desc
         else:
-            q_pth = os.getcwd().replace('vpr_technqiues', '') + '/vpr/descriptors/' + \
+            q_pth = config.root_dir + '/vpr/descriptors/' + \
                     dataset_name + '/' + method_name + '/q_desc.npy'
-            m_pth = os.getcwd().replace('vpr_technqiues', '') + '/vpr/descriptors/' + \
+            m_pth = config.root_dir + '/vpr/descriptors/' + \
                     dataset_name + '/' + method_name + '/m_desc.npy'
 
             q_desc = np.load(q_pth)

@@ -56,6 +56,9 @@ def compute_map_features(M, dataset_name=None, disable_pbar=False):
     return m_desc
 
 
+def matching_method(q_desc, m_desc):
+    return cosine_similarity(q_desc, m_desc).transpose()
+
 class PlaceRecognition:
     def __init__(self, m_desc):
         self.m_desc = m_desc
@@ -63,25 +66,14 @@ class PlaceRecognition:
         self.index.add(m_desc)
 
     def perform_vpr(self, q_path):
-        if isinstance(q_path, str):
-            q_desc = compute_query_desc([q_path], disable_pbar=True)
-            D, I = self.index.search(q_desc.astype(np.float32), 1)
-            I = I[0][0]
-            score = cosine_similarity(self.m_desc[I][None, :], q_desc)
-            return I.squeeze(), score.squeeze()
-        else:
-            q_desc = compute_query_desc(q_path)
-            D, I = self.index.search(q_desc.astype(np.float32), 1)
-            scores = cosine_similarity(self.m_desc[I].squeeze(), q_desc).diagonal()
-            return I.squeeze(), scores
-
-    def match(self, q_desc):
+        q_desc = compute_query_desc(q_path, disable_pbar=True)
         D, I = self.index.search(q_desc.astype(np.float32), 1)
-        scores = cosine_similarity(self.m_desc[I].squeeze(), q_desc).diagonal()
-        return I.squeeze(), scores
+        temp_mdesc = self.m_desc[I].squeeze() if self.m_desc[I].squeeze().ndim == 2 else self.m_desc[I][0]
+        scores = cosine_similarity(q_desc, temp_mdesc).diagonal()
+        return I.flatten(), scores
 
-def matching_method(q_desc, m_desc):
-    return cosine_similarity(q_desc, m_desc)
+
+
 
 
 

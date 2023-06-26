@@ -36,12 +36,12 @@ class PlaceRecognition:
             q_desc = compute_query_desc([q_path], disable_pbar=True)
             D, I = self.index.search(q_desc.astype(np.float32), 1)
             I = I[0][0]
-            score = cosine_similarity(self.m_desc[I][None, :], q_desc)
+            #score = cosine_similarity(self.m_desc[I][None, :], q_desc)
             return I.squeeze(), score.squeeze()
         else:
             q_desc = compute_query_desc(q_path)
             D, I = self.index.search(q_desc.astype(np.float32), 1)
-            scores = cosine_similarity(self.m_desc[I].squeeze(), q_desc).diagonal()
+            #scores = cosine_similarity(self.m_desc[I].squeeze(), q_desc).diagonal()
             return I.squeeze(), scores
 
     def match(self, q_desc):

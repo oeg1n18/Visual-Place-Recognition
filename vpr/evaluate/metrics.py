@@ -125,7 +125,6 @@ def sim2preds(S: np.ndarray, threshold_type: str = 'single') -> np.ndarray:
                computed from the similarity matrix. Is either 'single', 'auto' or a float e.g. 0.67
     :return: boolean matrix of predictions
     """
-
     if threshold_type == 'single':
         P = matching_methods.best_match_per_query(S)
         return P
@@ -135,6 +134,7 @@ def sim2preds(S: np.ndarray, threshold_type: str = 'single') -> np.ndarray:
     elif type(threshold_type) == float:
         P = matching_methods.thresholding(S, threshold_type)
         return P
+
     else:
         raise Exception("threshold_type must either be 'single', 'auto', or a float")
 
@@ -192,9 +192,12 @@ class Metrics:
 
         # Use a matching method or default to cosine similarity for vector space model
         if matching_method:
-            self.S = matching_method(Fq, Fm)
+            print("using Matching Method")
+            self.S = matching_method(Fq, Fm).transpose()
         else:
-            self.S = cosine_similarity(Fq, Fm)
+            self.S = cosine_similarity(Fq, Fm).transpose()
+        assert self.S.shape[0] == len(self.db_pths)
+        assert self.S.shape[1] == len(self.q_pths)
 
     def run_evaluation(self, matching='multi', threshold_type='single'):
         """
