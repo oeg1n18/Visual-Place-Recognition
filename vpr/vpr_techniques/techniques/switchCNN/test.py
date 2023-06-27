@@ -1,9 +1,9 @@
 from torch.utils.data import DataLoader
 
 from models import resnet9Module
-from train import accuracyDataModule, accuracyDataset
+from train_accuracy import accuracyDataModule, accuracyDataset
 import pytorch_lightning as pl
-from vpr.vpr_techniques.techniques.switchCNN.train import resnet_transforms_test
+from vpr.vpr_techniques.techniques.switchCNN.train_accuracy import resnet_transforms_test
 from vpr.data.datasets import Nordlands
 import torch.nn.functional as F
 import torch

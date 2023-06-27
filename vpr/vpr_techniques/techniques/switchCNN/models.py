@@ -135,3 +135,37 @@ class resnet9Module(pl.LightningModule):
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=0.02)
+
+
+class resnet9regressionModule(pl.LightningModule):
+    def __init__(self, pretrained=True):
+        super().__init__()
+        self.model = create_resnet9_model(output_dim=4)
+        self.loss = nn.MSELoss()
+
+    def forward(self, x):
+        return self.model(x)
+
+    def training_step(self, batch, batch_idx):
+        x, y = batch
+        y_hat = self.forward(x)
+        loss = self.loss(y_hat, y)
+        self.log("train_loss", loss, on_epoch=True)
+        return loss
+
+    @torch.no_grad()
+    def validation_step(self, batch, batch_idx):
+        x, y = batch
+        y_hat = self.forward(x)
+        loss = self.loss(y_hat, y)
+        self.log("val_loss", loss, on_epoch=True)
+
+    @torch.no_grad()
+    def test_step(self, batch, batch_idx):
+        x, y = batch
+        y_hat = self.forward(x)
+        loss = self.loss(y_hat, y)
+        self.log("test_mse", loss, on_epoch=True)
+
+    def configure_optimizers(self):
+        return torch.optim.Adam(self.parameters(), lr=0.02)

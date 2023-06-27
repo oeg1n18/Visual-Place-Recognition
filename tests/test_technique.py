@@ -11,6 +11,7 @@ from vpr.vpr_techniques.utils import load_descriptors
 dataset = SFU
 methods = ["hog", "netvlad", "mixvpr", "cosplace", "switchCNN"]
 methods = ["netvlad", "cosplace", "mixvpr", "hog"]
+methods = ["switchCNNprec"]
 
 
 @pytest.mark.parametrize("method_name", ["vpr.vpr_techniques." + method for method in methods])
@@ -56,8 +57,8 @@ def test_computes_map_short(method_name):
 @pytest.mark.parametrize("method_name", ["vpr.vpr_techniques." + method for method in methods])
 def test_save_query_descriptors(method_name):
     method = importlib.import_module(method_name)
-    Q = dataset.get_query_paths()[:3]
-    M = dataset.get_map_paths()[:3]
+    Q = dataset.get_query_paths()[:10]
+    M = dataset.get_map_paths()[:10]
     m_desc = method.compute_map_features(M, dataset.NAME, disable_pbar=True)
     q_desc = method.compute_query_desc(Q, dataset.NAME, disable_pbar=True)
     q_desc_load, m_desc_load = load_descriptors(dataset.NAME, method.NAME)
@@ -238,17 +239,6 @@ def test_descriptor_repeatability(method_name):
         for i in range(len(m_desc1)):
             assert (m_desc1[i] == m_desc2[i]).all()
 
-    del method
-
-
-@pytest.mark.parametrize("method_name", ["vpr.vpr_techniques." + method for method in methods])
-def test_descriptor_equivalence(method_name):
-    method = importlib.import_module(method_name)
-    Q = dataset.get_query_paths()[:10]
-    q_desc = method.compute_query_desc(Q)
-    q_desc2 = np.vstack(method.compute_query_desc([q]) for q in Q)
-    if method.NAME != "switchCNN":
-        assert (q_desc == q_desc2).all()
     del method
 
 

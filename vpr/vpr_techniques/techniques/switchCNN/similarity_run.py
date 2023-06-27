@@ -1,8 +1,8 @@
 from vpr.data.datasets import Nordlands, berlin_kudamm, SPED_V2
 import config
 from vpr.vpr_techniques.techniques.switchCNN.models import mobilenetModule, resnet9Module
-from vpr.vpr_techniques.techniques.switchCNN.train import resnet_transforms_test
-from vpr.vpr_techniques import switchCNN, hog, netvlad, mixvpr, cosplace
+from vpr.vpr_techniques.techniques.switchCNN.train_accuracy import resnet_transforms_test
+from vpr.vpr_techniques import switchCNNprec, hog, netvlad, mixvpr, cosplace
 import pandas as pd
 import torch
 from PIL import Image

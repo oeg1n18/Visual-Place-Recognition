@@ -1,4 +1,4 @@
-from vpr.vpr_techniques import netvlad, hog, cosplace, mixvpr, switchCNN
+from vpr.vpr_techniques import netvlad, hog, cosplace, mixvpr, switchCNNprec
 from vpr.data.datasets import Nordlands
 
 techniques = [netvlad, hog, cosplace, mixvpr]

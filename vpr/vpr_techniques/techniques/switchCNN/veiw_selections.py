@@ -1,15 +1,15 @@
-from vpr.data.datasets import Nordlands, SFU
+from vpr.data.datasets import Nordlands, SFU, GardensPointWalking
 import config
 from vpr.vpr_techniques.techniques.switchCNN.models import mobilenetModule, resnet9Module
-from vpr.vpr_techniques.techniques.switchCNN.train import resnet_transforms_test
-from vpr.vpr_techniques import switchCNN
+from vpr.vpr_techniques.techniques.switchCNN.train_accuracy import resnet_transforms_test
+from vpr.vpr_techniques import switchCNNprec
 import pandas as pd
 import torch
 from PIL import Image
 import numpy as np
 import torch.nn.functional as F
 
-dataset = SFU
+dataset = GardensPointWalking
 
 df = pd.read_csv(config.root_dir + '/vpr/vpr_techniques/techniques/switchCNN/data/accuracy_dataset.csv')
 
@@ -48,11 +48,12 @@ gt = [df.loc[df["query_images"]==q].to_numpy()[0][2:] for q in Q]
 counts = [0, 0, 0, 0, 0]
 for i in range(len(Q)):
 
-    print("probs", (probs[i]+0.5).astype(int), "good_selection", gt[i][selections[i]], "gt", gt[i], "switchCNN", GT[switchcnn_match[i], i], "nv, hog, cp, mv", GT[netvlad_match[i], i], GT[hog_match[i], i],  GT[cosplace_match[i], i],  GT[mixvpr_match[i], i])
+    #print("probs", (probs[i]+0.5).astype(int), "good_selection", gt[i][selections[i]], "gt", gt[i], "switchCNN", GT[switchcnn_match[i], i], "nv, hog, cp, mv", GT[netvlad_match[i], i], GT[hog_match[i], i],  GT[cosplace_match[i], i],  GT[mixvpr_match[i], i])
     counts[0] += GT[switchcnn_match[i], i]
     counts[1] += GT[netvlad_match[i], i]
     counts[2] += GT[hog_match[i], i]
     counts[3] += GT[cosplace_match[i], i]
     counts[4] += GT[mixvpr_match[i], i]
 
-    print(counts)
+    print("SwitchCNN", counts[0]/len(Q), "netvlad", counts[1]/len(Q), "hog", counts[2]/len(Q),
+          "cosplace", counts[3]/len(Q), "mixvpr", counts[4]/len(Q))

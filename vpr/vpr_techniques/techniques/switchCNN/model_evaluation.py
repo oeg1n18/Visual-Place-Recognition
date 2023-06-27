@@ -5,7 +5,7 @@ import numpy as np
 from tqdm import tqdm
 import pandas as pd
 from vpr.vpr_techniques.techniques.switchCNN.models import resnet9Module
-from vpr.vpr_techniques.techniques.switchCNN.train import resnet_transforms_test
+from vpr.vpr_techniques.techniques.switchCNN.train_accuracy import resnet_transforms_test
 import torch.nn.functional as F
 from PIL import Image
 techniques = [netvlad,hog,cosplace,mixvpr]

@@ -191,11 +191,8 @@ class Metrics:
         self.GTsoft = GTsoft
 
         # Use a matching method or default to cosine similarity for vector space model
-        if matching_method:
-            print("using Matching Method")
-            self.S = matching_method(Fq, Fm).transpose()
-        else:
-            self.S = cosine_similarity(Fq, Fm).transpose()
+        self.S = matching_method(Fq, Fm)
+        print("================ ", self.S.shape, self.GTsoft.shape, self.GT.shape, len(self.db_pths), len(self.q_pths))
         assert self.S.shape[0] == len(self.db_pths)
         assert self.S.shape[1] == len(self.q_pths)
 
@@ -227,9 +224,9 @@ class Metrics:
         self.confusion_matrix(threshold_type=threshold_type)  # Confusion Matrix
 
         # Log visualizations of matches
-        if self.q_pths is not None and self.db_pths is not None:
-            self.view_matches(self.q_pths, self.db_pths, self.GT,
-                              threshold_type=threshold_type, GTsoft=self.GTsoft)
+        #if self.q_pths is not None and self.db_pths is not None:
+            #self.view_matches(self.q_pths, self.db_pths, self.GT,
+                              #threshold_type=threshold_type, GTsoft=self.GTsoft)
 
         # =============== Logging Metrics ====================================
         wandb.run.summary["precision_" + self.dataset_name] = prec
@@ -571,7 +568,7 @@ class Metrics:
             size = self.Fm[0].shape[0] * self.Fm[0].shape[1]
             return size, type, nbytes
 
-        if self.method_name == 'switchCNN':
+        if self.method_name == 'switchCNN_f1' or self.method_name == 'switchCNN_prec':
             type = str(self.Fm[0][0].dtype)
             nbytes = sys.getsizeof(self.Fm)/len(self.Fm[0])
             size = self.Fm[0][0].size

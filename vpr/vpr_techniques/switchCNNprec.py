@@ -6,8 +6,8 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 import config
-from vpr.vpr_techniques.techniques.switchCNN.models import mobilenetModule, resnet9Module
-from vpr.vpr_techniques.techniques.switchCNN.train import resnet_transforms_test
+from vpr.vpr_techniques.techniques.switchCNN.models import mobilenetModule, resnet9Module, resnet9regressionModule
+from vpr.vpr_techniques.techniques.switchCNN.train_accuracy import resnet_transforms_test
 from vpr.vpr_techniques import netvlad, hog, cosplace, mixvpr
 from vpr.data.datasets import Nordlands
 import torch
@@ -24,7 +24,8 @@ selection_transform = resnet_transforms_test
 selection_model = resnet9Module.load_from_checkpoint(checkpoint_path=selection_model_pth)
 selection_model.eval()
 
-NAME = "switchCNN"
+
+NAME = "switchCNN_prec"
 techniques = [netvlad, hog, cosplace, mixvpr]
 
 

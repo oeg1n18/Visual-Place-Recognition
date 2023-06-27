@@ -4,9 +4,9 @@ import numpy as np
 import cv2
 from PIL import Image
 import matplotlib.pyplot as plt
-from vpr.vpr_techniques import switchCNN
+from vpr.vpr_techniques import switchCNNprec
 from vpr.vpr_techniques.techniques.switchCNN.models import resnet9Module
-from vpr.vpr_techniques.techniques.switchCNN.train import resnet_transforms_test
+from vpr.vpr_techniques.techniques.switchCNN.train_accuracy import resnet_transforms_test
 import torch.nn.functional as F
 import torch
 import matplotlib.pyplot as plt

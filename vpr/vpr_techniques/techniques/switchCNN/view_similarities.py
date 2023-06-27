@@ -1,4 +1,4 @@
-from vpr.vpr_techniques import netvlad, cosplace, mixvpr, hog, switchCNN
+from vpr.vpr_techniques import netvlad, cosplace, mixvpr, hog, switchCNNprec
 from vpr.data.datasets import SPED_V2, Nordlands
 import matplotlib.pyplot as plt
 
