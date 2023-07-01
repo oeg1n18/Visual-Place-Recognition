@@ -1,5 +1,6 @@
 from vpr.data.datasets import GardensPointWalking, SFU, StLucia, ESSEX3IN1, Nordlands, SPED_V2, pittsburgh30k, berlin_kudamm, pittsburgh30k
-from vpr.evaluate.metrics import Metrics
+from vpr.evaluate.metrics_wandb import Metrics
+from vpr.evaluate import metrics
 from vpr.evaluate.timer import Timer
 from vpr.vpr_techniques.utils import load_descriptors
 import config
@@ -9,7 +10,7 @@ import importlib
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('--mode', required=True, choices=("describe", "eval_time", "eval_metrics", "eval_invariance"),
+parser.add_argument('--mode', required=True, choices=("describe", "eval_time", "eval_metrics_wb", "eval_metrics", "eval_invariance"),
                     help='Specify either describe or evaluate', type=str)
 parser.add_argument('--datasets', choices=("SFU", "GardensPointWalking", "StLucia", "ESSEX3IN1", "Nordlands", "SPED_V2", "ESSEX3IN1", "Pittsburgh30k"),
                     help='specify one of the datasets from vpr/data/raw_data', type=str, default="StLucia", nargs='+')
@@ -44,7 +45,7 @@ if args.mode == "describe":
             del method
 
 # ============== Evaluate Mode =======================
-if args.mode == "eval_metrics":
+if args.mode == "eval_metrics_wb":
     for dataset in datasets:
         for method_name in methods_names:
             method = importlib.import_module("vpr.vpr_techniques." + method_name)
@@ -58,6 +59,25 @@ if args.mode == "eval_metrics":
             eval.run_evaluation()
             del method
 
+if args.mode == "eval_metrics":
+    for dataset in datasets:
+        for dataset in datasets:
+            S_data ={}
+            for method_name in methods_names:
+                method = importlib.import_module("vpr.vpr_techniques." + method_name)
+                M = dataset.get_map_paths()
+                Q = dataset.get_query_paths()
+                GT = dataset.get_gtmatrix(gt_type='hard')
+                GTsoft = dataset.get_gtmatrix(gt_type='soft')
+                Fq, Fm = load_descriptors(dataset.NAME, method.NAME)
+                S = method.matching_method(Fq, Fm)
+                S_data[method.NAME] = S
+
+            print("hello")
+            metrics.plot_curvepr(GT, S_data, dataset_name=dataset.NAME, show=True)
+            metrics.plot_curveroc(GT, S_data, dataset_name=dataset.NAME, show=True)
+            metrics.compute_metrics(GT, S_data, dataset_name=dataset.NAME)
+            del method
 
 if args.mode == "eval_time":
     eval = Timer(dataset, method)
