@@ -50,5 +50,5 @@ class PlaceRecognition:
         return I.squeeze(), scores
 
 def matching_method(q_desc, m_desc):
-    return cosine_similarity(q_desc, m_desc)
+    return cosine_similarity(q_desc, m_desc).transpose()
 

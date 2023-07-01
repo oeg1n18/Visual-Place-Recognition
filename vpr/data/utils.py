@@ -17,7 +17,7 @@ class VprDataset(Dataset):
     def __getitem__(self, idx):
         path = self.img_paths[idx]
         img = Image.open(path)
-        if self.transform:
+        if img is not None:
             img = self.transform(img)
         return img
 
@@ -26,11 +26,14 @@ def view_dataset_matches(dataset):
     M = dataset.get_map_paths()
     Q = dataset.get_query_paths()
     GT = dataset.get_gtmatrix()
+    print(len(Q), len(M))
 
     Q_sample = random.sample(Q, k=1)
+    print(Q_sample)
     Q_sample_idx = Q.index(Q_sample[0])
-    ref_idx = [[i] for i, x in enumerate(GT[Q_sample_idx]) if x == 1]
+    ref_idx = [[i] for i, x in enumerate(GT[:, Q_sample_idx]) if x == 1]
     n_correct_matches = len(ref_idx)
+    print("Number of correct matches", n_correct_matches)
     M = np.array(M)
     Q_ref = M[ref_idx]
     if len(Q_ref) == 0:

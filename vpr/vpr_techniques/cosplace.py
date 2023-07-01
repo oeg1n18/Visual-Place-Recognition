@@ -4,6 +4,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from torch.utils.data import DataLoader
 from torchvision.transforms import transforms
 from tqdm import tqdm
+from vpr.data.utils import VprDataset
 
 import torch
 import numpy as np
@@ -26,13 +27,14 @@ preprocess = transforms.Compose([
 
 
 def compute_query_desc(Q, dataset_name=None, disable_pbar=False):
-    X = torch.stack([preprocess(Image.open(q_pth)) for q_pth in Q])
+    ds = VprDataset(Q, transform=preprocess)
+    dl = DataLoader(ds, batch_size=config.batch_size, shuffle=False, num_workers=16)
     all_desc = []
-    for batch in torch.chunk(X, int(max(X.shape[0] / config.batch_size, 1))):
+    for batch in tqdm(dl, desc="Computing Query Descriptors", disable=disable_pbar):
         with torch.no_grad():
             desc = model(batch.to(config.device)).detach().cpu().numpy().squeeze()
-        all_desc.append(desc)
-    q_desc = np.vstack(all_desc)
+            all_desc.append(desc.astype(np.float32))
+        q_desc = np.vstack(all_desc).astype(np.float32)
 
     if dataset_name is not None:
         save_descriptors(dataset_name, NAME, q_desc, type='query')
@@ -40,13 +42,14 @@ def compute_query_desc(Q, dataset_name=None, disable_pbar=False):
 
 
 def compute_map_features(M, dataset_name=None, disable_pbar=False):
-    X = torch.stack([preprocess(Image.open(m_pth)) for m_pth in M]).to('cpu')
+    ds = VprDataset(M, transform=preprocess)
+    dl = DataLoader(ds, batch_size=config.batch_size, shuffle=False, num_workers=16)
     all_desc = []
-    for batch in torch.chunk(X, int(max(X.shape[0] / config.batch_size, 1))):
+    for batch in tqdm(dl, desc="Computing Map Features", disable=disable_pbar):
         with torch.no_grad():
             desc = model(batch.to(config.device)).detach().cpu().numpy().squeeze()
-        all_desc.append(desc)
-    m_desc = np.vstack(all_desc)
+        all_desc.append(desc.astype(np.float32))
+    m_desc = np.vstack(all_desc).astype(np.float32)
 
     if dataset_name is not None:
         save_descriptors(dataset_name, NAME, m_desc, type='map')

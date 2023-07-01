@@ -10,6 +10,7 @@ from vpr.vpr_techniques.utils import save_descriptors
 import torch
 
 NAME = 'PatchNetVLAD'
+batch_size=12
 
 configfile = os.path.join(PATCHNETVLAD_ROOT_DIR, 'configs/speed.ini')
 
@@ -29,7 +30,7 @@ def compute_query_desc(Q, dataset_name=None, disable_pbar=False):
 @torch.no_grad()
 def compute_map_features(M, dataset_name=None, disable_pbar=False):
     m_imgs = [np.array(Image.open(img_path)) for img_path in M]
-    _, m_patch = feature_extractor.compute_features(m_imgs, disable_pbar=disable_pbar)
+    _, m_patch = feature_extractor.compute_features(m_imgs, disable_pbar)
     if dataset_name is not None:
         save_descriptors(dataset_name, NAME, m_patch, type='map')
     return m_patch

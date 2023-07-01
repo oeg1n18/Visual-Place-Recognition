@@ -290,22 +290,27 @@ class QueryDatasetFromStruct(data.Dataset):
 NAME = 'Pittsburgh30k'
 def get_query_paths(session_type='ms'):
     db = get_whole_training_set()
-    return db.images
+    return db.images[:7500]
 
 
 def get_map_paths(session_type='ms'):
     db = get_whole_training_set()
-    return db.images
+    return db.images[:8944]
 
-
-def get_gtmatrix(session_type='ms', gt_type='hard'):
+from tqdm import tqdm
+def get_gtmatrix(session_type='ms', gt_type='soft'):
     Q = get_query_paths()
     M = get_map_paths()
-    GT = np.zeros((len(Q), len(M)), dtype=np.uint8)
+    GT = np.zeros((len(M), len(Q)), dtype=np.uint8)
     db = get_whole_training_set()
-    all_positives = db.getPositives()
-    for i, positives in enumerate(all_positives):
-        GT[i, positives] = 1.
+    all_positives = db.getPositives()[:len(Q)]
+    if gt_type=='soft':
+        for i, positives in tqdm(enumerate(all_positives)):
+            for pos in positives:
+                GT[pos-20:pos+20, i] = 1.
+    else:
+        for i, positives in tqdm(enumerate(all_positives)):
+            GT[positives, i] = 1.
     return GT
 
 

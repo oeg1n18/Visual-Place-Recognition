@@ -27,18 +27,45 @@ def recall(GT, S, threshold_type: str = 'multi'):
     return recall_score(GT.flatten().astype(int), P.flatten().astype(int))
 
 
-def curvepr(GT, S) -> tuple[np.ndarray, np.ndarray]:
-    assert (S.shape == GT.shape), "S_in, GThard and GTsoft must have the same shape"
+def curvepr(GT, S, GTsoft = None, n_thresh=100, matching: str = 'multi') -> tuple[np.ndarray, np.ndarray]:
+    assert S.shape == GT.shape, "S and GT must be the same shape"
     assert (S.ndim == 2), "S_in, GThard and GTsoft must be two-dimensional"
-    precision, recall, thresholds = precision_recall_curve(GT.flatten().astype(int), S.flatten())
-    return precision, recall, thresholds
+    GT = GT.astype('bool')
+    # copy S and set elements that are only true in GTsoft to min(S) to ignore them during evaluation
+    S = S.copy()
+    if GTsoft is not None:
+        S[GTsoft & ~GT] = S.min()
+    # single-best-match or multi-match VPR
+    if matching == 'single':
+        # count the number of ground-truth positives (GTP)
+        GTP = np.count_nonzero(GT.any(0))
+        # GT-values for best match per query (i.e., per column)
+        GT = GT[np.argmax(S, axis=0), np.arange(GT.shape[1])]
+        # similarities for best match per query (i.e., per column)
+        S = np.max(S, axis=0)
+    elif matching == 'multi':
+        # count the number of ground-truth positives (GTP)
+        GTP = np.count_nonzero(GT)  # ground truth positive
+        # init precision and recall vectors
+    R = [0, ]
+    P = [1, ]
 
+    # select start and end treshold
+    startV = S.max()  # start-value for treshold
+    endV = S.min()  # end-value for treshold
 
-def curveroc(GT, S) -> None:
-    assert (S.shape == GT.shape), "S_in, GThard and GTsoft must have the same shape"
-    assert (S.ndim == 2), "S_in, GThard and GTsoft must be two-dimensional"
-    fpr, tpr, thresholds = roc_curve(GT.flatten().astype(int), S.flatten())
-    return fpr, tpr, thresholds
+    # iterate over different thresholds
+    for i in np.linspace(startV, endV, n_thresh):
+        B = S >= i  # apply threshold
+
+        TP = np.count_nonzero(GT & B)  # true positives
+        FP = np.count_nonzero((~GT) & B)  # false positives
+
+        P.append(TP / (TP + FP))  # precision
+        R.append(TP / GTP)  # recall
+
+    return P, R
+
 
 
 def recallAtK(GT, S, K: int = 1) -> float:
@@ -66,7 +93,7 @@ def recallAt100precision(GT, S) -> float:
     assert (S.shape == GT.shape), "S_in and GThard must have the same shape"
     assert (S.ndim == 2), "S_in, GThard and GTsoft must be two-dimensional"
     # get precision-recall curve
-    P, R, _ = curvepr(GT, S)
+    P, R = curvepr(GT, S)
     # recall values at 100% precision
     R = R[P == 1]
     # maximum recall at 100% precision
@@ -77,7 +104,7 @@ def recallAt100precision(GT, S) -> float:
 def recallAtNprecision(GT, S, N) -> float:
     assert (S.shape == GT.shape)
     assert (S.ndim == 2)
-    P, R, _ = curvepr(GT, S)
+    P, R = curvepr(GT, S)
     idx = np.argwhere(P > N).min()
     return P[idx]
 
@@ -90,9 +117,9 @@ def average_precision(GT, S):
 
 # ================================= Plots =============================================================================
 
-def plot_curvepr(GT: np.ndarray, S_data: dict, dataset_name=None, show=False) -> None:
+def plot_curvepr(GT: np.ndarray, S_data: dict, dataset_name=None, show=False, matching: str = 'multi', GTsoft = None) -> None:
     for name, S in S_data.items():
-        P, R, _ = curvepr(GT, S)
+        P, R = curvepr(GT, S, GTsoft=GTsoft, matching=matching)
         plt.plot(P, R, label=name)
 
     plt.legend()
@@ -100,6 +127,7 @@ def plot_curvepr(GT: np.ndarray, S_data: dict, dataset_name=None, show=False) ->
     pth = config.root_dir + '/vpr/evaluate/figures/pr_curves/'
     plt.xlabel("Recall")
     plt.ylabel("Precision")
+    plt.xlim(0.01, 1), plt.ylim(0, 1.01)
     if not os.path.exists(pth):
         os.makedirs(pth)
     if show:
@@ -108,20 +136,6 @@ def plot_curvepr(GT: np.ndarray, S_data: dict, dataset_name=None, show=False) ->
     return 0
 
 
-def plot_curveroc(GT: np.ndarray, S_data: dict, dataset_name=None, show=False) -> None:
-    for name, S in S_data.items():
-        fpr, tpr, _ = curveroc(GT, S)
-        plt.plot(fpr, tpr, label=name)
-
-    plt.title("ROC Curve for " + dataset_name)
-    plt.xlabel("False Positive Rate")
-    plt.ylabel("True Positive Rate")
-    pth = config.root_dir + '/vpr/evaluate/figures/pr_curves/'
-    if not os.path.exists(pth):
-        os.makedirs(pth)
-    if show:
-        plt.show()
-    plt.savefig(pth + dataset_name + '.png')
 
 
 def compute_metrics(GT, S_data, dataset_name=None):

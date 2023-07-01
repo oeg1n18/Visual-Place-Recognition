@@ -1,17 +1,24 @@
-from vpr.vpr_techniques import mixvpr, hog, switchCNNprec, switchCNNf1
-from vpr.data.datasets import SPED_V2
-from vpr.evaluate.metrics import Metrics
+from vpr.data.datasets import pittsburgh30k
+from vpr.evaluate.metrics_wb import Metrics
+from vpr.data.utils import view_dataset_matches
 import config
+from vpr.data.datasets import SFU, GardensPointWalking
+from vpr.vpr_techniques import patchnetvlad
+from vpr.vpr_techniques.utils import load_descriptors
+from vpr.data.datasets import Nordlands
+from vpr.vpr_techniques import alexnet
 
-method = switchCNNf1
+ds = Nordlands
+method = alexnet
 
-Q = SPED_V2.get_query_paths()
-M = SPED_V2.get_map_paths()
-GT = SPED_V2.get_gtmatrix()
+Q = ds.get_query_paths()
+M = ds.get_map_paths()
 
-S = method.matching_method(method.compute_query_desc(Q), method.compute_map_features(M))
+q_desc = method.compute_query_desc(Q, dataset_name=ds.NAME)
+m_desc = method.compute_map_features(M, dataset_name=ds.NAME)
+q_desc, m_desc = load_descriptors(ds.NAME, method.NAME)
+print(q_desc.shape, m_desc.shape)
+print(q_desc.shape, m_desc.shape, type(q_desc), type(m_desc))
 
+S = method.matching_method(q_desc, m_desc)
 print(S.shape)
-print(GT.shape)
-print(len(Q))
-print(len(M))

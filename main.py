@@ -14,7 +14,7 @@ parser.add_argument('--mode', required=True, choices=("describe", "eval_time", "
                     help='Specify either describe or evaluate', type=str)
 parser.add_argument('--datasets', choices=("SFU", "GardensPointWalking", "StLucia", "ESSEX3IN1", "Nordlands", "SPED_V2", "ESSEX3IN1", "Pittsburgh30k"),
                     help='specify one of the datasets from vpr/data/raw_data', type=str, default="StLucia", nargs='+')
-parser.add_argument('--methods', choices=("patchnetvlad", "hog", "mixvpr", "netvlad", "cosplace", "delf", "cohog", "switchCNNf1", "switchCNNprec"),
+parser.add_argument('--methods', choices=("patchnetvlad", "hog", "mixvpr", "alexnet", "netvlad", "cosplace", "delf", "cohog", "switchCNNf1", "switchCNNprec"),
                     help="specify one of the techniques from vpr/vpr_tecniques", type=str, default="hog", nargs='+')
 args = parser.parse_args()
 
@@ -75,7 +75,6 @@ if args.mode == "eval_metrics":
 
             print("hello")
             metrics.plot_curvepr(GT, S_data, dataset_name=dataset.NAME, show=True)
-            metrics.plot_curveroc(GT, S_data, dataset_name=dataset.NAME, show=True)
             metrics.compute_metrics(GT, S_data, dataset_name=dataset.NAME)
             del method
 

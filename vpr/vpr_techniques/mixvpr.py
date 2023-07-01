@@ -37,16 +37,17 @@ model.eval()
 
 preprocess = torch.nn.Sequential(
     ResNet50_Weights.DEFAULT.transforms(),
-    transforms.Resize(320))
+    transforms.Resize(320, antialias=True))
 
 NAME = 'MixVPR'
 
 
 def compute_query_desc(Q, dataset_name=None, disable_pbar=False):
     model.eval()
-    X = torch.stack([preprocess(Image.open(q)) for q in Q])
+    ds = VprDataset(Q, transform=preprocess)
+    dl = DataLoader(ds, batch_size=config.batch_size, shuffle=False, num_workers=16)
     all_desc = []
-    for batch in torch.chunk(X, int(max(len(Q) / config.batch_size, 1))):
+    for batch in tqdm(dl, desc="Computing Map Features", disable=disable_pbar):
         desc = model(batch.to(config.device)).detach().cpu()
         all_desc.append(desc)
     q_desc = np.vstack(all_desc)
@@ -57,10 +58,12 @@ def compute_query_desc(Q, dataset_name=None, disable_pbar=False):
 
 def compute_map_features(M, dataset_name=None, disable_pbar=False):
     model.eval()
-    X = torch.stack([preprocess(Image.open(m)) for m in M])
+    ds = VprDataset(M, transform=preprocess)
+    dl = DataLoader(ds, batch_size=config.batch_size, shuffle=False, num_workers=16)
     all_desc = []
-    for batch in torch.chunk(X, int(max(len(M) / config.batch_size, 1))):
-        desc = model(batch.to(config.device)).detach().cpu()
+    for batch in tqdm(dl, desc="Computing Map Features", disable=disable_pbar):
+        with torch.no_grad():
+            desc = model(batch.to(config.device)).detach().cpu().numpy().squeeze()
         all_desc.append(desc)
     m_desc = np.vstack(all_desc)
     if dataset_name is not None:
