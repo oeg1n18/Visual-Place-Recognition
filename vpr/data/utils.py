@@ -16,16 +16,16 @@ class VprDataset(Dataset):
 
     def __getitem__(self, idx):
         path = self.img_paths[idx]
-        img = Image.open(path)
-        if img is not None:
+        img = np.array(Image.open(path).resize((320, 320))).astype(np.uint8)[:, :, :3]
+        if self.transform is not None:
             img = self.transform(img)
         return img
 
 
 def view_dataset_matches(dataset):
-    M = dataset.get_map_paths()
-    Q = dataset.get_query_paths()
-    GT = dataset.get_gtmatrix()
+    M = dataset.get_map_paths(reference_set="spring")
+    Q = dataset.get_query_paths(query_set="summer")
+    GT = dataset.get_gtmatrix(gt_type='soft', query_set="summer", reference_set="spring")
     print(len(Q), len(M))
 
     Q_sample = random.sample(Q, k=1)

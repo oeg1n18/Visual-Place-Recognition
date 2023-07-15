@@ -8,7 +8,7 @@ from scipy.signal import convolve2d
 import config
 
 NAME = 'GardensPointWalking'
-def get_query_paths(session_type='ms'):
+def get_query_paths(session_type='ms', partition=None):
     if session_type=='ms':
         path = config.root_dir + '/vpr/data/raw_data/GardensPointWalking'
         query_paths = sorted(glob.glob(path + "/night_right/*"))
@@ -18,7 +18,7 @@ def get_query_paths(session_type='ms'):
 
 
 
-def get_map_paths(session_type='ms'):
+def get_map_paths(session_type='ms', partition=None):
     if session_type=='ms':
         path = config.root_dir + '/vpr/data/raw_data/GardensPointWalking'
         test_paths = sorted(glob.glob(path + "/day_right/*"))
@@ -28,7 +28,7 @@ def get_map_paths(session_type='ms'):
 
 #
 
-def get_gtmatrix(session_type='ms', gt_type='hard'):
+def get_gtmatrix(session_type='ms', gt_type='hard', partition=None):
     if session_type=='ms':
         query_paths = get_query_paths(session_type=session_type)
         map_paths = get_map_paths(session_type=session_type)

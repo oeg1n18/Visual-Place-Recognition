@@ -62,12 +62,15 @@ def matching_method(q_desc, m_desc):
 class PlaceRecognition:
     def __init__(self, m_desc):
         self.m_desc = m_desc
-        self.index = faiss.IndexFlatL2(m_desc.shape[1])
+        self.index = faiss.IndexFlatIP(m_desc.shape[1])
+        faiss.normalize_L2(m_desc)
         self.index.add(m_desc)
 
     def perform_vpr(self, q_path):
         q_desc = compute_query_desc(q_path, disable_pbar=True)
         D, I = self.index.search(q_desc.astype(np.float32), 1)
+        q_desc = q_desc.astype(np.float32)
+        faiss.normalize_L2(q_desc)
         temp_mdesc = self.m_desc[I].squeeze() if self.m_desc[I].squeeze().ndim == 2 else self.m_desc[I][0]
         scores = cosine_similarity(q_desc, temp_mdesc).diagonal()
         return I.flatten(), scores

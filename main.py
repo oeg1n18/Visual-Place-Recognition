@@ -1,4 +1,4 @@
-from vpr.data.datasets import GardensPointWalking, SFU, StLucia, ESSEX3IN1, Nordlands, SPED_V2, pittsburgh30k, berlin_kudamm, pittsburgh30k
+from vpr.data.datasets import GardensPointWalking, SFU, StLucia, ESSEX3IN1, Nordlands, SPED_V2, pittsburgh30k, berlin_kudamm, pittsburgh30k, Nordlands_passes
 from vpr.evaluate.metrics_wandb import Metrics
 from vpr.evaluate import metrics
 from vpr.evaluate.timer import Timer
@@ -12,14 +12,14 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('--mode', required=True, choices=("describe", "eval_time", "eval_metrics_wb", "eval_metrics", "eval_invariance"),
                     help='Specify either describe or evaluate', type=str)
-parser.add_argument('--datasets', choices=("SFU", "GardensPointWalking", "StLucia", "ESSEX3IN1", "Nordlands", "SPED_V2", "ESSEX3IN1", "Pittsburgh30k"),
+parser.add_argument('--datasets', choices=("SFU", "GardensPointWalking", "StLucia", "ESSEX3IN1", "Nordlands", "SPED_V2", "ESSEX3IN1", "Pittsburgh30k", "berlin_kudamm", "Nordlands_passes"),
                     help='specify one of the datasets from vpr/data/raw_data', type=str, default="StLucia", nargs='+')
-parser.add_argument('--methods', choices=("patchnetvlad", "hog", "mixvpr", "alexnet", "netvlad", "cosplace", "delf", "cohog", "switchCNNf1", "switchCNNprec"),
+parser.add_argument('--methods', choices=("patchnetvlad", "hog", "mixvpr", "alexnet", "netvlad", "cosplace", "delf", "cohog", "selectCNN"),
                     help="specify one of the techniques from vpr/vpr_tecniques", type=str, default="hog", nargs='+')
 args = parser.parse_args()
 
 # ============== Chose the datasets ===============
-all_datasets = [SFU, GardensPointWalking, StLucia, ESSEX3IN1, Nordlands, SPED_V2, berlin_kudamm, pittsburgh30k]
+all_datasets = [SFU, GardensPointWalking, StLucia, ESSEX3IN1, Nordlands, SPED_V2, berlin_kudamm, pittsburgh30k, berlin_kudamm, Nordlands_passes]
 all_datasets_name = [ds.NAME for ds in all_datasets]
 
 datasets = []
@@ -72,10 +72,8 @@ if args.mode == "eval_metrics":
                 Fq, Fm = load_descriptors(dataset.NAME, method.NAME)
                 S = method.matching_method(Fq, Fm)
                 S_data[method.NAME] = S
-
-            print("hello")
-            metrics.plot_curvepr(GT, S_data, dataset_name=dataset.NAME, show=True)
-            metrics.compute_metrics(GT, S_data, dataset_name=dataset.NAME)
+            metrics.plot_curvepr(GT, S_data, dataset_name=dataset.NAME, show=False)
+            #metrics.compute_metrics(GT, S_data, dataset_name=dataset.NAME)
             del method
 
 if args.mode == "eval_time":

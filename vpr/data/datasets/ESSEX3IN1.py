@@ -4,16 +4,16 @@ from glob import glob
 import numpy as np
 
 NAME = 'ESSEX3IN1'
-def get_query_paths(session_type='ms'):
+def get_query_paths(session_type='ms', partition=None):
     if session_type=='ms':
         return sorted(glob(config.root_dir + '/vpr/data/raw_data/essex3IN1/query_combined/*.png'))
 
 
-def  get_map_paths(session_type='ms'):
+def  get_map_paths(session_type='ms', partition=None):
     if session_type=='ms':
         return sorted(glob(config.root_dir + '/vpr/data/raw_data/essex3IN1/reference_combined/*.png'))
 
-def get_gtmatrix(session_type='ms', gt_type='hard'):
+def get_gtmatrix(session_type='ms', gt_type='hard', partition=None):
     Q = get_query_paths()
     M = get_map_paths()
     assert len(Q) == len(M)

@@ -288,17 +288,17 @@ class QueryDatasetFromStruct(data.Dataset):
 
 # =======================================================================================================================
 NAME = 'Pittsburgh30k'
-def get_query_paths(session_type='ms'):
+def get_query_paths(session_type='ms', partition=None):
     db = get_whole_training_set()
     return db.images[:7500]
 
 
-def get_map_paths(session_type='ms'):
+def get_map_paths(session_type='ms', partition=None):
     db = get_whole_training_set()
     return db.images[:8944]
 
 from tqdm import tqdm
-def get_gtmatrix(session_type='ms', gt_type='soft'):
+def get_gtmatrix(session_type='ms', gt_type='soft', partition=None):
     Q = get_query_paths()
     M = get_map_paths()
     GT = np.zeros((len(M), len(Q)), dtype=np.uint8)

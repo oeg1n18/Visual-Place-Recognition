@@ -13,6 +13,7 @@ import torchvision.transforms as transforms
 import numpy as np
 from tqdm import tqdm
 import faiss
+from torch.utils.data import Dataset
 
 from vpr.vpr_techniques.utils import save_descriptors
 
@@ -39,15 +40,33 @@ preprocess = torch.nn.Sequential(
     ResNet50_Weights.DEFAULT.transforms(),
     transforms.Resize(320, antialias=True))
 
+class MixVPRDataset(Dataset):
+    def __init__(self, img_paths, transform=None):
+        self.img_paths = img_paths
+        self.transform = transform
+
+    def __len__(self):
+        return len(self.img_paths)
+
+    def __getitem__(self, idx):
+        path = self.img_paths[idx]
+        img = np.array(Image.open(path)).astype(np.uint8)[:, :, :3]
+        img = Image.fromarray(img)
+
+        if self.transform is not None:
+            img = self.transform(img)
+        return img
+
+
 NAME = 'MixVPR'
 
 
 def compute_query_desc(Q, dataset_name=None, disable_pbar=False):
     model.eval()
-    ds = VprDataset(Q, transform=preprocess)
+    ds = MixVPRDataset(Q, transform=preprocess)
     dl = DataLoader(ds, batch_size=config.batch_size, shuffle=False, num_workers=16)
     all_desc = []
-    for batch in tqdm(dl, desc="Computing Map Features", disable=disable_pbar):
+    for batch in tqdm(dl, desc="Computing Query Features", disable=disable_pbar):
         desc = model(batch.to(config.device)).detach().cpu()
         all_desc.append(desc)
     q_desc = np.vstack(all_desc)
@@ -58,7 +77,7 @@ def compute_query_desc(Q, dataset_name=None, disable_pbar=False):
 
 def compute_map_features(M, dataset_name=None, disable_pbar=False):
     model.eval()
-    ds = VprDataset(M, transform=preprocess)
+    ds = MixVPRDataset(M, transform=preprocess)
     dl = DataLoader(ds, batch_size=config.batch_size, shuffle=False, num_workers=16)
     all_desc = []
     for batch in tqdm(dl, desc="Computing Map Features", disable=disable_pbar):
@@ -78,11 +97,14 @@ def matching_method(q_desc, m_desc):
 class PlaceRecognition:
     def __init__(self, m_desc):
         self.m_desc = m_desc
-        self.index = faiss.IndexFlatL2(m_desc.shape[1])
+        self.index = faiss.IndexFlatIP(m_desc.shape[1])
+        faiss.normalize_L2(m_desc)
         self.index.add(m_desc)
 
     def perform_vpr(self, q_path):
         q_desc = compute_query_desc(q_path)
+        q_desc = q_desc.astype(np.float32)
+        faiss.normalize_L2(q_desc)
         D, I = self.index.search(q_desc.astype(np.float32), 1)
         temp_mdesc = self.m_desc[I].squeeze() if self.m_desc[I].squeeze().ndim == 2 else self.m_desc[I][0]
         scores = cosine_similarity(q_desc, temp_mdesc).diagonal()

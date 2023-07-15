@@ -11,15 +11,15 @@ import numpy as np
 
 NAME = 'Nordlands'
 
-def get_query_paths(session_type='ms'):
+def get_query_paths(session_type='ms', partition=None):
     return sorted(glob.glob(config.root_dir + '/vpr/data/raw_data/Nordland_a_section/winter/*.jpg'))
 
 
-def get_map_paths(session_type='ms'):
+def get_map_paths(session_type='ms', partition=None):
     return sorted(glob.glob(config.root_dir + '/vpr/data/raw_data/Nordland_a_section/summer/*.jpg'))
 
 
-def get_gtmatrix(session_type='ms', gt_type='hard'):
+def get_gtmatrix(session_type='ms', gt_type='hard', partition=None):
     Q, M = get_query_paths(), get_map_paths()
     GT = np.zeros((len(Q), len(M)))
     with open(config.root_dir + '/vpr/data/raw_data/Nordland_a_section/gt.csv', 'r') as file:

@@ -11,15 +11,15 @@ import numpy as np
 
 NAME = 'RobotCars_short'
 
-def get_query_paths(session_type='ms'):
+def get_query_paths(session_type='ms', partition=None):
     return sorted(glob.glob(config.root_dir + '/vpr/data/raw_data/RototCars_short/query_sunny/*.jpg'))
 
 
-def get_map_paths(session_type='ms'):
+def get_map_paths(session_type='ms', partition=None):
     return sorted(glob.glob(config.root_dir + '/vpr/data/raw_data/RototCars_short/ref_dusk/*.jpg'))
 
 
-def get_gtmatrix(session_type='ms', gt_type='hard'):
+def get_gtmatrix(session_type='ms', gt_type='hard', partition=None):
     Q, M = get_query_paths(), get_map_paths()
     GT = np.zeros((len(Q), len(M)))
     with open(config.root_dir + '/vpr/data/raw_data/RototCars_short/gt.csv', 'r') as file:

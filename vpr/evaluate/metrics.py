@@ -130,9 +130,11 @@ def plot_curvepr(GT: np.ndarray, S_data: dict, dataset_name=None, show=False, ma
     plt.xlim(0.01, 1), plt.ylim(0, 1.01)
     if not os.path.exists(pth):
         os.makedirs(pth)
+
+    plt.savefig(pth + dataset_name + '.png')
     if show:
         plt.show()
-    plt.savefig(pth + dataset_name + '.png')
+
     return 0
 
 

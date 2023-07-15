@@ -8,14 +8,14 @@ import config
 import numpy as np
 
 NAME = 'StLucia'
-def get_query_paths(session_type='ms'):
+def get_query_paths(session_type='ms', partition=None):
     return sorted(glob.glob(config.root_dir + '/vpr/data/raw_data/StLucia_small/180809_1545/*.jpg'))
 
 
-def get_map_paths(session_type='ms'):
+def get_map_paths(session_type='ms', partition=None):
     return sorted(glob.glob(config.root_dir + '/vpr/data/raw_data/StLucia_small/100909_0845/*.jpg'))
 
-def get_gtmatrix(session_type='ms', gt_type='soft'):
+def get_gtmatrix(session_type='ms', gt_type='soft', partition=None):
     gt_data = np.load(config.root_dir + '/vpr/data/raw_data/StLucia_small/GT.npz')
     if gt_type=='hard':
         GT = gt_data['GThard'].astype('bool')

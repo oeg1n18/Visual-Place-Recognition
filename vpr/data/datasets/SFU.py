@@ -9,20 +9,20 @@ import glob
 import config
 
 NAME = 'SFU'
-def get_query_paths(session_type='ms'):
+def get_query_paths(session_type='ms', partition=None):
     if isdir(config.root_dir + '/vpr/data/raw_data/SFU'):
         return sorted(glob.glob(config.root_dir + '/vpr/data/raw_data/SFU/jan/*.jpg'))
     else:
         print("must download dataset first into rootdir + /vpr/data/raw_data/ directory")
 
 
-def get_map_paths(session_type='ms'):
+def get_map_paths(session_type='ms', partition=None):
     if isdir(config.root_dir + '/vpr/data/raw_data/SFU'):
         return sorted(glob.glob(config.root_dir + '/vpr/data/raw_data/SFU/dry/*.jpg'))
     else:
         print("must download dataset first into rootdir + /vpr/data/raw_data/ directory")
 
-def get_gtmatrix(session_type='ms', gt_type='hard'):
+def get_gtmatrix(session_type='ms', gt_type='hard', partition=None):
     gt_data = np.load(config.root_dir + '/vpr/data/raw_data/SFU/GT.npz')
     if gt_type=='hard':
         GT = gt_data['GThard'].astype('bool')
