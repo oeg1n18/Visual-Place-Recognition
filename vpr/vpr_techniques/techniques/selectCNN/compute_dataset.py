@@ -2,13 +2,13 @@ from typing import Union, Any
 
 from sklearn.metrics import precision_score, recall_score, precision_recall_curve, f1_score, average_precision_score, fbeta_score
 
-from vpr.vpr_techniques import cosplace, mixvpr, netvlad, hog, delf, patchnetvlad, cohog
-from vpr.data.datasets import StLucia, SFU, GardensPointWalking, ESSEX3IN1, SPED_V2, berlin_kudamm, Nordlands, \
-    RobotCars_short, pittsburgh30k, Nordlands_passes
+from vpr.vpr_techniques import cosplace, mixvpr, netvlad, hog
+from vpr.data.datasets import Nordlands_illumination
 import config
 import numpy as np
 from vpr.evaluate.matching import thresholding
 import pandas as pd
+from tqdm import tqdm
 
 def recall_at_n(gt: np.ndarray, probs: np.ndarray, n_queries: int, n: int=5) -> float:
     all_gt = np.array_split(gt, n_queries)
@@ -58,7 +58,7 @@ def compute_metric(gt: np.ndarray, preds: np.ndarray, probs: np.ndarray, metric:
 
 
 def compute_data(technique, datasets,
-                 metrics=["precision", "f1_score", "accuracy", "recall@3", "recall@5", "recall@10"], partition='train'):
+                 metrics=["precision", "f1_score", "accuracy", "recall@3", "recall@5", "recall@10"], partition='train', augmentations=None):
     all_images = []
     all_metrics = [[] for _ in range(len(metrics))]
     for dataset in datasets:
@@ -69,8 +69,9 @@ def compute_data(technique, datasets,
         query_descriptors = technique.compute_query_desc(Q)
         map_descriptors = technique.compute_map_features(M)
         S0 = technique.matching_method(query_descriptors, map_descriptors)
-        all_images += Q
-        for i, q in enumerate(query_descriptors):
+        all_images = Q
+        """ Speed this up it is incredibly slow """
+        for i, q in tqdm(enumerate(query_descriptors), desc='Computing Metrics'):
             if i == 0:
                 S = S0[:, 0].flatten()
                 gt = GT[:, 0].flatten().astype(int)
@@ -116,7 +117,7 @@ def build_datasets(techniques, datasets,
 
 
 if __name__ == '__main__':
-    techniques = [netvlad, hog, cosplace, mixvpr]
-    datasets = [Nordlands_passes]
-    metrics = ["precision", "f1_score", "accuracy", "recall@3", "recall@5", "recall@10", "auprc", "F-beta"]
+    techniques = [hog, netvlad, cosplace, mixvpr]
+    datasets = [Nordlands_illumination]
+    metrics = ["F-beta"]
     build_datasets(techniques, datasets, metrics, partition='train')

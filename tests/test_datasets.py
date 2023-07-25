@@ -4,8 +4,8 @@ from PIL import Image
 import config
 import numpy as np
 
-datasets = ["ESSEX3IN1", "Nordlands", "GardensPointWalking", "SFU", "SPED_V2", "berlin_kudamm", "StLucia", "RobotCars_short", "Nordlands_passes"]
-datasets = ["Nordlands_passes"]
+datasets = ["ESSEX3IN1", "Nordlands", "GardensPointWalking", "SFU", "SPED_V2", "berlin_kudamm", "StLucia", "RobotCars_short", "Nordlands_partitioned"]
+datasets = ["Nordlands_partitioned"]
 
 @pytest.mark.parametrize("dataset_name", ["vpr.data.datasets." + dataset for dataset in datasets])
 def test_name(dataset_name):

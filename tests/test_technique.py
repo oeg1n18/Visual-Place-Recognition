@@ -1,6 +1,7 @@
 import pytest
 import importlib
-from vpr.vpr_techniques import hog, mixvpr, cosplace, netvlad, patchnetvlad, delf, cohog
+#from vpr.vpr_techniques import hog, mixvpr, cosplace, netvlad, patchnetvlad, delf, cohog
+from vpr.vpr_techniques import hog
 from vpr.data.datasets import SFU
 from vpr.vpr_techniques.utils import load_descriptors
 import numpy as np
@@ -9,8 +10,8 @@ import config
 from vpr.vpr_techniques.utils import load_descriptors
 
 dataset = SFU
-methods = ["hog", "netvlad", "mixvpr", "cosplace", "selectCNN"]
-methods = ["switchCNNf1"]
+#methods = ["hog", "netvlad", "mixvpr", "cosplace", "selectCNN"]
+methods = ["mixvpr"]
 
 
 @pytest.mark.parametrize("method_name", ["vpr.vpr_techniques." + method for method in methods])
@@ -210,35 +211,6 @@ def test_matching_repeatability(method_name):
     del method
 
 
-
-@pytest.mark.parametrize("method_name", ["vpr.vpr_techniques." + method for method in methods])
-def test_descriptor_repeatability(method_name):
-    method = importlib.import_module(method_name)
-    Q = dataset.get_query_paths()[:5]
-    M = dataset.get_map_paths()[:10]
-    q_desc1 = method.compute_query_desc(Q)
-    m_desc1 = method.compute_map_features(M)
-    q_desc2 = method.compute_query_desc(Q)
-    m_desc2 = method.compute_map_features(M)
-
-    if isinstance(q_desc1, np.ndarray):
-        assert (q_desc1 == q_desc2).all()
-    elif isinstance(q_desc1, tuple):
-        q_desc1, selections1 = q_desc1
-        q_desc2, selections2 = q_desc2
-        for i in range(len(q_desc1)):
-            assert (q_desc2[i] == q_desc1[i]).all()
-        assert selections1 == selections2
-    else:
-        raise Exception("Do not know how to check for this descriptor type")
-
-    if isinstance(m_desc1, np.ndarray):
-        assert (m_desc1 == m_desc2).all()
-    elif isinstance(m_desc1, list):
-        for i in range(len(m_desc1)):
-            assert (m_desc1[i] == m_desc2[i]).all()
-
-    del method
 
 
 

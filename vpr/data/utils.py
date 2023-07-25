@@ -23,14 +23,13 @@ class VprDataset(Dataset):
 
 
 def view_dataset_matches(dataset):
-    M = dataset.get_map_paths(reference_set="spring")
-    Q = dataset.get_query_paths(query_set="summer")
-    GT = dataset.get_gtmatrix(gt_type='soft', query_set="summer", reference_set="spring")
+    M = dataset.get_map_paths()
+    Q = dataset.get_query_paths()
+    GT = dataset.get_gtmatrix(gt_type='soft')
     print(len(Q), len(M))
 
-    Q_sample = random.sample(Q, k=1)
-    print(Q_sample)
-    Q_sample_idx = Q.index(Q_sample[0])
+    Q_sample_idx = int(np.random.rand(1)*len(Q)-1)
+    Q_sample = Q[Q_sample_idx]
     ref_idx = [[i] for i, x in enumerate(GT[:, Q_sample_idx]) if x == 1]
     n_correct_matches = len(ref_idx)
     print("Number of correct matches", n_correct_matches)
@@ -38,12 +37,12 @@ def view_dataset_matches(dataset):
     Q_ref = M[ref_idx]
     if len(Q_ref) == 0:
         raise Exception("No reference Images")
-    plt.imshow(np.array(Image.open(Q_sample[0])))
+    plt.imshow(np.array(Image.open(Q_sample)))
     plt.title("Query")
     plt.axis('off')
     plt.show()
     for i in range(0, max(n_correct_matches, 2)):
-        plt.imshow(np.array(Image.open(Q_ref[i][0])))
+        plt.imshow(np.array(Image.open(Q_ref.flatten()[i])))
         plt.title("Ref")
         plt.axis('off')
         plt.show()

@@ -12,7 +12,7 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('--mode', required=True, choices=("describe", "eval_time", "eval_metrics_wb", "eval_metrics", "eval_invariance"),
                     help='Specify either describe or evaluate', type=str)
-parser.add_argument('--datasets', choices=("SFU", "GardensPointWalking", "StLucia", "ESSEX3IN1", "Nordlands", "SPED_V2", "ESSEX3IN1", "Pittsburgh30k", "berlin_kudamm", "Nordlands_passes"),
+parser.add_argument('--datasets', choices=("SFU", "GardensPointWalking", "StLucia", "ESSEX3IN1", "Nordlands", "SPED_V2", "ESSEX3IN1", "Pittsburgh30k", "berlin_kudamm", "Nordlands_partitioned"),
                     help='specify one of the datasets from vpr/data/raw_data', type=str, default="StLucia", nargs='+')
 parser.add_argument('--methods', choices=("patchnetvlad", "hog", "mixvpr", "alexnet", "netvlad", "cosplace", "delf", "cohog", "selectCNN"),
                     help="specify one of the techniques from vpr/vpr_tecniques", type=str, default="hog", nargs='+')
