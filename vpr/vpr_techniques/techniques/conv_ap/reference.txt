@@ -1,0 +1,21 @@
+@article{Ali_bey_2022,
+	doi = {10.1016/j.neucom.2022.09.127},
+  
+	url = {https://doi.org/10.1016%2Fj.neucom.2022.09.127},
+  
+	year = 2022,
+	month = {nov},
+  
+	publisher = {Elsevier {BV}
+},
+  
+	volume = {513},
+  
+	pages = {194--203},
+  
+	author = {Amar Ali-bey and Brahim Chaib-draa and Philippe Gigu{\`{e}}re},
+  
+	title = {{GSV}-Cities: Toward appropriate supervised visual place recognition},
+  
+	journal = {Neurocomputing}
+}

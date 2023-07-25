@@ -1,0 +1,8 @@
+@misc{revaud2019learning,
+      title={Learning with Average Precision: Training Image Retrieval with a Listwise Loss}, 
+      author={Jerome Revaud and Jon Almazan and Rafael Sampaio de Rezende and Cesar Roberto de Souza},
+      year={2019},
+      eprint={1906.07589},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV}
+}

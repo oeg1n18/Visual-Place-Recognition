@@ -1,0 +1,17 @@
+@ARTICLE{8972582,
+
+  author={Zaffar, Mubariz and Ehsan, Shoaib and Milford, Michael and McDonald-Maier, Klaus},
+
+  journal={IEEE Robotics and Automation Letters}, 
+
+  title={CoHOG: A Light-Weight, Compute-Efficient, and Training-Free Visual Place Recognition Technique for Changing Environments}, 
+
+  year={2020},
+
+  volume={5},
+
+  number={2},
+
+  pages={1835-1842},
+
+  doi={10.1109/LRA.2020.2969917}}
