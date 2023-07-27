@@ -1,4 +1,4 @@
-from vpr.data.datasets import GardensPointWalking, SFU, StLucia, ESSEX3IN1, Nordlands, SPED_V2, berlin_kudamm, Nordlands_passes
+from vpr.data.datasets import GardensPointWalking, SFU, StLucia, ESSEX3IN1, Nordlands, SPED_V2, berlin_kudamm, Nordlands_passes, combined_dataset
 from vpr.evaluate.metrics_wandb import Metrics
 from vpr.evaluate import metrics
 from vpr.evaluate.timer import Timer
@@ -12,14 +12,14 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('--mode', required=True, choices=("describe", "eval_time", "eval_metrics_wb", "eval_metrics", "eval_invariance"),
                     help='Specify either describe or evaluate', type=str)
-parser.add_argument('--datasets', choices=("SFU", "GardensPointWalking", "StLucia", "ESSEX3IN1", "Nordlands", "SPED_V2", "ESSEX3IN1", "Pittsburgh30k", "berlin_kudamm", "Nordlands_passes"),
+parser.add_argument('--datasets', choices=("SFU", "GardensPointWalking", "StLucia", "combined_dataset", "ESSEX3IN1", "Nordlands", "SPED_V2", "ESSEX3IN1", "Pittsburgh30k", "berlin_kudamm", "Nordlands_passes"),
                     help='specify one of the datasets from vpr/data/raw_data', type=str, default="StLucia", nargs='+')
-parser.add_argument('--methods', choices=("patchnetvlad", "hog", "mixvpr", "alexnet", "netvlad", "cosplace", "delf", "cohog", "selectCNN", "selectCNN_auprc", "selectCNN_f1", "selectCNN_fbeta", "selectCNN_precision", "selectCNN_recall", "selectCNN_recallat1", "selectCNN_recallat5", "selectCNN_recallat10"),
+parser.add_argument('--methods', choices=("patchnetvlad", "hog", "mixvpr", "alexnet", "netvlad", "cosplace", "conv_ap", "delf", "cohog", "selectCNN", "selectCNN_auprc", "selectCNN_f1", "selectCNN_fbeta", "selectCNN_precision", "selectCNN_recall", "selectCNN_recallat1", "selectCNN_recallat5", "selectCNN_recallat10"),
                     help="specify one of the techniques from vpr/vpr_tecniques", type=str, default="hog", nargs='+')
 args = parser.parse_args()
 
 # ============== Chose the datasets ===============
-all_datasets = [SFU, GardensPointWalking, StLucia, ESSEX3IN1, Nordlands, SPED_V2, berlin_kudamm, berlin_kudamm, Nordlands_passes]
+all_datasets = [SFU, GardensPointWalking, StLucia, ESSEX3IN1, Nordlands, SPED_V2, berlin_kudamm, berlin_kudamm, Nordlands_passes, combined_dataset]
 all_datasets_name = [ds.NAME for ds in all_datasets]
 
 datasets = []
@@ -73,6 +73,9 @@ if args.mode == "eval_metrics":
                 S = method.matching_method(Fq, Fm)
                 S_data[method.NAME] = S
             metrics.plot_curvepr(GT, S_data, dataset_name=dataset.NAME, show=False)
+            metrics.plot_recallat1(GT, S_data, dataset_name=dataset.NAME, show=False)
+            metrics.plot_average_precision(GT, S_data, dataset_name=dataset.NAME, show=False)
+            metrics.plot_precision(GT, S_data, dataset_name=dataset.NAME, show=False)
             #metrics.compute_metrics(GT, S_data, dataset_name=dataset.NAME)
             del method
 

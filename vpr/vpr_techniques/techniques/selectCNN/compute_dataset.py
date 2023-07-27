@@ -3,7 +3,7 @@ from typing import Union, Any
 from sklearn.metrics import precision_score, recall_score, precision_recall_curve, f1_score, average_precision_score, fbeta_score
 
 from vpr.vpr_techniques import cosplace, mixvpr, netvlad, conv_ap
-from vpr.data.datasets import Nordlands_passes, SFU
+from vpr.data.datasets import Nordlands_passes, SFU, GardensPointWalking, StLucia
 import config
 import numpy as np
 from vpr.evaluate.matching import thresholding
@@ -85,12 +85,15 @@ def compute_data(technique, datasets,
             elif 0 < i <= 5:
                 S = S0[:, :i].transpose()
                 gt = GT[:, :i].transpose()
+            elif i >= S0.shape[1] - 5:
+                S = S0[:, i:].transpose()
+                gt = GT[:, i:].transpose()
             elif i == S0.shape[1]:
                 S = np.array([S0[:, i].flatten()])
                 gt = np.array([GT[:, i].flatten().astype(int)])
             else:
-                S = S0[:, i-5:i].transpose()
-                gt = GT[:, i-5:i].transpose()
+                S = S0[:, i-5:i+5].transpose()
+                gt = GT[:, i-5:i+5].transpose()
             preds = thresholding(S, thresh='auto')
             for i, metric in enumerate(metrics):
                 all_metrics[i].append(compute_metric(gt, preds, S, metric))
@@ -127,7 +130,7 @@ def build_datasets(techniques, datasets,
 
 
 if __name__ == '__main__':
-    techniques = [mixvpr, conv_ap, cosplace, netvlad]
-    datasets = [Nordlands_passes]
+    from vpr.vpr_techniques.techniques.selectCNN.selectCNN_config import techniques
+    datasets = [StLucia]
     metrics = ["F-beta", "f1_score", "precision", "recall", "recall@1", "recall@3", "recall@5", "recall@10", "auprc"]
-    build_datasets(techniques, datasets, metrics, partition='train')
+    build_datasets(techniques, datasets, metrics, partition='test')

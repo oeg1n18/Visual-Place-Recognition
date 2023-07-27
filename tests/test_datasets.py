@@ -5,7 +5,7 @@ import config
 import numpy as np
 
 datasets = ["ESSEX3IN1", "Nordlands", "GardensPointWalking", "SFU", "SPED_V2", "berlin_kudamm", "StLucia", "RobotCars_short", "Nordlands_partitioned"]
-datasets = ["Nordlands_passes"]
+datasets = ["combined_dataset"]
 
 @pytest.mark.parametrize("dataset_name", ["vpr.data.datasets." + dataset for dataset in datasets])
 def test_name(dataset_name):

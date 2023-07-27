@@ -47,12 +47,26 @@ def technique_selections(Q: list) -> list:
 
 def oracle_selections(Q: list) -> list:
     import pandas as pd
-    df = pd.read_csv('/home/oliver/Documents/github/Visual-Place-Recognition/vpr/vpr_techniques/techniques/selectCNN/data/Nordlands_passes_f1_score_test.csv')
+    df1 = pd.read_csv(
+        '/home/oliver/Documents/github/Visual-Place-Recognition/vpr/vpr_techniques/techniques/selectCNN/data/Nordlands_passes_f1_score_test.csv')
+    df2 = pd.read_csv(
+        '/home/oliver/Documents/github/Visual-Place-Recognition/vpr/vpr_techniques/techniques/selectCNN/data/SFU_f1_score_test.csv')
+    df3 = pd.read_csv(
+        '/home/oliver/Documents/github/Visual-Place-Recognition/vpr/vpr_techniques/techniques/selectCNN/data/StLucia_f1_score_test.csv')
+    df4 = pd.read_csv(
+        '/home/oliver/Documents/github/Visual-Place-Recognition/vpr/vpr_techniques/techniques/selectCNN/data/GardensPointWalking_f1_score_test.csv')
+
+    df = pd.concat((df1, df2, df3, df4))
     df_queries = list(df["query_images"].to_numpy().flatten())
     selections = []
     for q in Q:
         idx = df_queries.index(q)
-        selections.append(np.argmax(df.iloc[idx].to_numpy()[2:].flatten()))
+        scores = df.iloc[idx].to_numpy()[2:].flatten()
+        if np.max(scores) < 0.2:
+            selections.append(0)
+        else:
+            selections.append(np.argmax(scores))
+            #selections.append(0)
     return selections
 
 
@@ -60,6 +74,7 @@ def compute_query_desc(Q: list, dataset_name: str=None, disable_pbar: bool=False
     # Computing VPR technqiue selections
     #selections = technique_selections(Q)
     selections = oracle_selections(Q)
+    print(selections)
 
 
     # Computing the descriptors with VPR method selections
@@ -100,6 +115,7 @@ def compute_map_features(M: list, dataset_name: str=None, disable_pbar: bool=Fal
 
 def matching_method(q_desc: tuple[list, list], m_desc: list[np.ndarray]) -> np.ndarray:
     desc, select_idx = q_desc
+    print(select_idx)
     # mask out the descriptors for each technique
     masks = [np.where(np.array(select_idx) == i) for i in range(len(m_desc))]
     # collect the descriptors computed with a particular technique

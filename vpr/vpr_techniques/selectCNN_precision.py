@@ -48,12 +48,25 @@ def technique_selections(Q: list) -> list:
 
 def oracle_selections(Q: list) -> list:
     import pandas as pd
-    df = pd.read_csv('/home/oliver/Documents/github/Visual-Place-Recognition/vpr/vpr_techniques/techniques/selectCNN/data/Nordlands_passes_precision_test.csv')
+    df1 = pd.read_csv(
+        '/home/oliver/Documents/github/Visual-Place-Recognition/vpr/vpr_techniques/techniques/selectCNN/data/Nordlands_passes_precision_test.csv')
+    df2 = pd.read_csv(
+        '/home/oliver/Documents/github/Visual-Place-Recognition/vpr/vpr_techniques/techniques/selectCNN/data/SFU_precision_test.csv')
+    df3 = pd.read_csv(
+        '/home/oliver/Documents/github/Visual-Place-Recognition/vpr/vpr_techniques/techniques/selectCNN/data/StLucia_precision_test.csv')
+    df4 = pd.read_csv(
+        '/home/oliver/Documents/github/Visual-Place-Recognition/vpr/vpr_techniques/techniques/selectCNN/data/GardensPointWalking_precision_test.csv')
+
+    df = pd.concat((df1, df2, df3, df4))
     df_queries = list(df["query_images"].to_numpy().flatten())
     selections = []
     for q in Q:
         idx = df_queries.index(q)
-        selections.append(np.argmax(df.iloc[idx].to_numpy()[2:].flatten()))
+        scores = df.iloc[idx].to_numpy()[2:].flatten()
+        if np.max(scores) < 0.2:
+            selections.append(0)
+        else:
+            selections.append(np.argmax(scores))
     return selections
 
 
@@ -115,9 +128,9 @@ def matching_method(q_desc: tuple[list, list], m_desc: list[np.ndarray]) -> np.n
     S = S.transpose()
     # Normalize the similarity matrix
     #S = S/np.linalg.norm(S, axis=0, keepdims=True)
-    S = (S - np.mean(S, axis=0, keepdims=True)) / np.std(S, axis=0, keepdims=True)
+    #S = (S - np.mean(S, axis=0, keepdims=True)) / np.std(S, axis=0, keepdims=True)
     #S = softmax(S*0.5, axis=0)
-    #S = (S - np.amin(S)) / (np.amax(S) - np.amin(S))
+    S = (S - np.amin(S)) / (np.amax(S) - np.amin(S))
     return S
 
 

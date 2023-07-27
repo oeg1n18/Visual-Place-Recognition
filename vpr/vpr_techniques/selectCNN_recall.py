@@ -47,12 +47,25 @@ def technique_selections(Q: list) -> list:
 
 def oracle_selections(Q: list) -> list:
     import pandas as pd
-    df = pd.read_csv('/home/oliver/Documents/github/Visual-Place-Recognition/vpr/vpr_techniques/techniques/selectCNN/data/Nordlands_passes_recall_test.csv')
+    df1 = pd.read_csv(
+        '/home/oliver/Documents/github/Visual-Place-Recognition/vpr/vpr_techniques/techniques/selectCNN/data/Nordlands_passes_recall_test.csv')
+    df2 = pd.read_csv(
+        '/home/oliver/Documents/github/Visual-Place-Recognition/vpr/vpr_techniques/techniques/selectCNN/data/SFU_recall_test.csv')
+    df3 = pd.read_csv(
+        '/home/oliver/Documents/github/Visual-Place-Recognition/vpr/vpr_techniques/techniques/selectCNN/data/StLucia_recall_test.csv')
+    df4 = pd.read_csv(
+        '/home/oliver/Documents/github/Visual-Place-Recognition/vpr/vpr_techniques/techniques/selectCNN/data/GardensPointWalking_recall_test.csv')
+
+    df = pd.concat((df1, df2, df3, df4))
     df_queries = list(df["query_images"].to_numpy().flatten())
     selections = []
     for q in Q:
         idx = df_queries.index(q)
-        selections.append(np.argmax(df.iloc[idx].to_numpy()[2:].flatten()))
+        scores = df.iloc[idx].to_numpy()[2:].flatten()
+        if np.max(scores) < 0.2:
+            selections.append(0)
+        else:
+            selections.append(np.argmax(scores))
     return selections
 
 

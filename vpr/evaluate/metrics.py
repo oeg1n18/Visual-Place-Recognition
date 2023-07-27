@@ -118,24 +118,93 @@ def average_precision(GT, S):
 # ================================= Plots =============================================================================
 
 def plot_curvepr(GT: np.ndarray, S_data: dict, dataset_name=None, show=False, matching: str = 'multi', GTsoft = None) -> None:
+    fig, ax = plt.subplots()
     for name, S in S_data.items():
         P, R = curvepr(GT, S, GTsoft=GTsoft, matching=matching)
-        plt.plot(P, R, label=name)
+        ax.plot(P, R, label=name)
 
     plt.legend()
-    plt.title("PR Curve for " + dataset_name)
+    ax.set_title("PR Curve for " + dataset_name)
     pth = config.root_dir + '/vpr/evaluate/figures/pr_curves/'
-    plt.xlabel("Recall")
-    plt.ylabel("Precision")
-    plt.xlim(0.01, 1), plt.ylim(0, 1.01)
+    ax.set_xlabel("Recall")
+    ax.set_ylabel("Precision")
+    ax.set_xlim(0.01, 1), plt.ylim(0, 1.01)
     if not os.path.exists(pth):
         os.makedirs(pth)
 
-    plt.savefig(pth + dataset_name + '.png')
+    fig.savefig(pth + dataset_name + '.png')
     if show:
         plt.show()
-
+    plt.close()
     return 0
+
+
+def plot_recallat1(GT: np.ndarray, S_data: dict, dataset_name=None, show=False, matching: str = 'multi', GTsoft=None) -> None:
+    scores, names = [], []
+    for name, S in S_data.items():
+        scores.append(recallAtK(GT, S, 1))
+        names.append(name)
+
+    print("===========================", scores)
+    fig, ax = plt.subplots()
+    ax.bar(names, scores)
+    ax.set_xticklabels(names, rotation=45)
+    ax.set_title("Recall@1 for " + dataset_name)
+    pth = config.root_dir + '/vpr/evaluate/figures/recall@1_plot/'
+    if not os.path.exists(pth):
+        os.makedirs(pth)
+
+    plt.tight_layout()
+
+    fig.savefig(pth + dataset_name + '.png')
+
+    if show:
+        plt.show()
+    return 0
+
+
+def plot_average_precision(GT: np.ndarray, S_data: dict, dataset_name=None, show=False, matching: str = 'multi', GTsoft=None) -> None:
+    scores, names = [], []
+    for name, S in S_data.items():
+        scores.append(average_precision(GT, S))
+        names.append(name)
+    fig, ax = plt.subplots()
+    ax.bar(names, scores)
+    ax.set_xticklabels(names, rotation=45)
+    ax.set_title("Recall@1 for " + dataset_name)
+    pth = config.root_dir + '/vpr/evaluate/figures/average_precision/'
+    if not os.path.exists(pth):
+        os.makedirs(pth)
+
+    plt.tight_layout()
+
+    fig.savefig(pth + dataset_name + '.png')
+
+    if show:
+        plt.show()
+    return 0
+
+def plot_precision(GT: np.ndarray, S_data: dict, dataset_name=None, show=False, matching: str = 'multi', GTsoft=None) -> None:
+    scores, names = [], []
+    for name, S in S_data.items():
+        scores.append(precision(GT, S, threshold_type='single'))
+        names.append(name)
+    fig, ax = plt.subplots()
+    ax.bar(names, scores)
+    ax.set_xticklabels(names, rotation=45)
+    ax.set_title("Recall@1 for " + dataset_name)
+    pth = config.root_dir + '/vpr/evaluate/figures/precision/'
+    if not os.path.exists(pth):
+        os.makedirs(pth)
+
+    plt.tight_layout()
+
+    fig.savefig(pth + dataset_name + '.png')
+
+    if show:
+        plt.show()
+    return 0
+
 
 
 
