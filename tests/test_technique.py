@@ -11,7 +11,7 @@ from vpr.vpr_techniques.utils import load_descriptors
 
 dataset = SFU
 #methods = ["hog", "netvlad", "mixvpr", "cosplace", "selectCNN"]
-methods = ["mixvpr"]
+methods = ["conv_ap"]
 
 
 @pytest.mark.parametrize("method_name", ["vpr.vpr_techniques." + method for method in methods])

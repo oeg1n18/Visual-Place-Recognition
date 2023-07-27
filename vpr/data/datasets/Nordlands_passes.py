@@ -18,7 +18,7 @@ def get_images_from_sections(pth):
     return imgs
 
 
-def get_query_paths(partition='test', query_set=["spring"]):
+def get_query_paths(partition='test', query_set=["fall"]):
     assert partition in ["train", "test"]
 
     if partition == 'train':
@@ -163,7 +163,7 @@ def get_map_paths(partition="test", reference_set=["summer"]):
             return imgs
 
 
-def get_gtmatrix(gt_type='soft', partition="test", query_set=["fall"], reference_set="spring"):
+def get_gtmatrix(gt_type='soft', partition="test", query_set=["fall"], reference_set="summer"):
     Q = get_query_paths(partition=partition, query_set=query_set)
     M = get_map_paths(partition=partition, reference_set=reference_set)
 
